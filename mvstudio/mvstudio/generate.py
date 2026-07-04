@@ -125,20 +125,45 @@ def _llm_prompts(analysis: dict[str, Any], lyrics: list[dict[str, Any]] | None,
 
 # ------------------------------------------------------------ generation
 
+def _ensure_mflux() -> None:
+    """Self-install the image generator so users never have to run pip.
+    Apple Silicon only; one-time; failures surface pip's actual error."""
+    try:
+        import mflux  # noqa: F401
+        return
+    except ImportError:
+        pass
+    import platform
+    import subprocess
+    if sys.platform != "darwin" or platform.machine() != "arm64":
+        raise GenerationUnavailable(
+            "image generation needs Apple Silicon (mflux/MLX); this machine "
+            "is not one. Install on a Mac with: pip install 'mvstudio[gen]'")
+    _log("[mvstudio] image generator (mflux) not installed — installing now "
+         "(one-time, a few minutes)...")
+    proc = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "mflux>=0.14"],
+        capture_output=True, text=True)
+    if proc.returncode != 0:
+        raise GenerationUnavailable(
+            "automatic mflux install failed:\n" + proc.stderr[-1500:])
+    _log("[mvstudio] mflux installed")
+
+
 def _mflux_generator(gen_model: str, width: int, height: int
                      ) -> Callable[[str, int, str], None]:
     """Returns generate(prompt, seed, out_path). Thin mflux wrapper."""
+    _ensure_mflux()
     try:
         from mflux.models.flux2.variants import Flux2Klein
         try:
             from mflux import ModelConfig
         except ImportError:
             from mflux.config.model_config import ModelConfig
-    except ImportError:
+    except ImportError as exc:
         raise GenerationUnavailable(
-            "mflux not installed (Apple Silicon required). Run:\n"
-            "  pip install 'mvstudio[gen]'\n"
-            "First generation downloads FLUX.2-klein-4B (~9GB).")
+            f"mflux installed but failed to load ({exc}). "
+            "Try: pip install --upgrade mflux")
 
     config = (ModelConfig.flux2_klein_4b() if "4b" in gen_model
               else ModelConfig.flux2_klein_9b())
