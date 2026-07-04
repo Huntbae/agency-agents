@@ -21,11 +21,16 @@
 
 ## 설치 및 검증 (Mac 기준)
 
+> **먼저 확인**: `python3 --version`이 **3.10 이상**이어야 합니다. macOS 기본
+> python3(Xcode CLT의 3.9.6, pip 21.2)는 너무 오래돼 설치가 실패합니다 —
+> `brew install python@3.12` 후 아래에서 `python3` 대신 `python3.12`를 쓰세요.
+
 ```bash
 git clone https://github.com/Huntbae/agency-agents.git
 cd agency-agents && git checkout claude/music-video-local-design-41d53y
 cd mvstudio
-python3 -m venv .venv && source .venv/bin/activate
+python3.12 -m venv .venv && source .venv/bin/activate   # 3.10+ 인터프리터 사용
+python -m pip install --upgrade pip                     # PEP 660 editable 설치에 필요
 pip install -e ".[dev,mcp]"
 mvstudio doctor                # 환경 점검 + 엔드투엔드 자가 테스트
 ```
