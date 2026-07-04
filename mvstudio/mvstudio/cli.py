@@ -142,6 +142,10 @@ def _dispatch(argv: list[str] | None = None) -> int:
 
     sub.add_parser("doctor", help="environment check + end-to-end self-test")
 
+    p = sub.add_parser("demo", help="generate showcase assets and render a "
+                                    "full demo video in one go")
+    p.add_argument("-o", "--outdir", default="mvstudio-demo")
+
     p = sub.add_parser("transcribe",
                        help="extract lyrics to .lrc via whisper (pip install 'mvstudio[lyrics]')")
     p.add_argument("song")
@@ -155,6 +159,27 @@ def _dispatch(argv: list[str] | None = None) -> int:
     if args.cmd == "doctor":
         from .doctor import run_doctor
         return run_doctor()
+
+    if args.cmd == "demo":
+        from .demo import make_scene_images, make_showcase_lrc, make_showcase_song
+        from .lyrics import parse_lrc
+        os.makedirs(args.outdir, exist_ok=True)
+        song = make_showcase_song(os.path.join(args.outdir, "song.wav"))
+        images_dir = make_scene_images(os.path.join(args.outdir, "photos"))
+        lrc = make_showcase_lrc(os.path.join(args.outdir, "song.lrc"))
+        print(f"[mvstudio] showcase assets -> {args.outdir}/")
+        analysis = analyze_audio(song)
+        lyrics = parse_lrc(lrc, duration=analysis["duration"])
+        presets = load_presets()
+        sb = make_storyboard(analysis, scan_images(images_dir), presets,
+                             width=1280, height=720, fps=30, seed=42,
+                             lyrics=lyrics)
+        out = os.path.join(args.outdir, "demo.mp4")
+        save_storyboard(sb, os.path.join(args.outdir, "demo.storyboard.json"))
+        render(sb, presets, out)
+        print(f"[mvstudio] wrote {out} ({len(sb['cuts'])} cuts, "
+              f"{analysis['duration']:.0f}s)")
+        return 0
 
     if args.cmd == "transcribe":
         from .transcribe import transcribe_to_lrc

@@ -59,7 +59,7 @@ def _segment(y: np.ndarray, sr: int, beat_times: np.ndarray,
     """Split the song into sections whose boundaries land on beats."""
     import librosa
 
-    k = int(np.clip(round(duration / 20.0), 2, max_sections))
+    k = int(np.clip(round(duration / 15.0), 2, max_sections))
 
     boundaries: list[float]
     try:

@@ -140,7 +140,8 @@ def _rule_cuts(analysis: dict[str, Any], images: list[dict[str, Any]],
         i = 0
         while i < len(grid):
             start = grid[i]
-            hop = step * 2 if rng.random() < 0.2 else step  # occasional long hold
+            # occasional long hold for variety, but never beyond 8 beats
+            hop = step * 2 if step <= 4 and rng.random() < 0.2 else step
             j = i + hop
             end = grid[j] if j < len(grid) else section["end"]
             if section["end"] - end < MIN_CUT_SECONDS:
