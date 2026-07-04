@@ -15,6 +15,10 @@ FALLBACK_BPM = 120.0
 
 
 def analyze_audio(path: str, max_sections: int = 12) -> dict[str, Any]:
+    import os
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"audio file not found: {path}")
+
     import librosa  # deferred: heavy import
 
     y, sr = librosa.load(path, sr=SR, mono=True)

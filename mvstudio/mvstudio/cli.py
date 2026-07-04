@@ -41,7 +41,19 @@ def _add_director_opts(p: argparse.ArgumentParser) -> None:
                    help=".lrc file to burn as subtitles (see also: transcribe)")
 
 
+def _check_inputs(args: argparse.Namespace) -> None:
+    """Fail fast with a readable message instead of a backend traceback."""
+    if not os.path.isfile(args.song):
+        raise SystemExit(f"[mvstudio] song file not found: {args.song}\n"
+                         "  (tip: drag the file into the terminal to paste its path)")
+    if hasattr(args, "images") and not os.path.isdir(args.images):
+        raise SystemExit(f"[mvstudio] image folder not found: {args.images}")
+    if getattr(args, "lyrics", None) and not os.path.isfile(args.lyrics):
+        raise SystemExit(f"[mvstudio] lyrics file not found: {args.lyrics}")
+
+
 def _build_storyboard(args: argparse.Namespace) -> dict:
+    _check_inputs(args)
     analysis = analyze_audio(args.song)
     images = scan_images(args.images)
     presets = load_presets(args.presets_file)
