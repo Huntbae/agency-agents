@@ -21,19 +21,17 @@
 
 ## 설치 및 검증 (Mac 기준)
 
-> **먼저 확인**: `python3 --version`이 **3.10 이상**이어야 합니다. macOS 기본
-> python3(Xcode CLT의 3.9.6, pip 21.2)는 너무 오래돼 설치가 실패합니다 —
-> `brew install python@3.12` 후 아래에서 `python3` 대신 `python3.12`를 쓰세요.
+처음 한 번 (Python 3.10+가 없다면 `brew install python@3.12` 먼저):
 
 ```bash
 git clone https://github.com/Huntbae/agency-agents.git
 cd agency-agents && git checkout claude/music-video-local-design-41d53y
-cd mvstudio
-python3.12 -m venv .venv && source .venv/bin/activate   # 3.10+ 인터프리터 사용
-python -m pip install --upgrade pip                     # PEP 660 editable 설치에 필요
-pip install -e ".[dev,mcp]"
-mvstudio doctor                # 환경 점검 + 엔드투엔드 자가 테스트
+bash mvstudio/setup-mac.sh
 ```
+
+이후에는 언제든 `bash ~/agency-agents/mvstudio/setup-mac.sh` 한 줄로
+업데이트(git pull)부터 재설치·자가 테스트까지 끝납니다. 스크립트가 `mvstudio`
+명령을 전역 등록하므로 **새 터미널에서도 venv 활성화 없이 바로 사용**할 수 있습니다.
 
 `mvstudio doctor`가 의존성, FFmpeg/인코더, RAM/디스크 티어, Ollama 유무를 점검한 뒤
 합성 데모 곡으로 실제 렌더까지 수행해 `RESULT: OK`를 출력하면 설치 검증 완료입니다.

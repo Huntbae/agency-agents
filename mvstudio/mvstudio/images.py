@@ -16,8 +16,21 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
 _STAT_SIZE = 64
 
 
+def _enable_heic() -> None:
+    """iPhone photos are HEIC by default; support them when the optional
+    pillow-heif extra is installed (pip install 'mvstudio[heic]')."""
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+        IMAGE_EXTS.update({".heic", ".heif"})
+    except ImportError:
+        pass
+
+
 def scan_images(folder: str) -> list[dict[str, Any]]:
     from PIL import Image
+
+    _enable_heic()
 
     if not os.path.isdir(folder):
         raise FileNotFoundError(f"image folder not found: {folder}")
@@ -52,5 +65,13 @@ def scan_images(folder: str) -> list[dict[str, Any]]:
         })
 
     if not records:
-        raise FileNotFoundError(f"no readable images in: {folder}")
+        names = os.listdir(folder)
+        hint = ""
+        if any(os.path.splitext(n)[1].lower() in (".heic", ".heif")
+               for n in names) and ".heic" not in IMAGE_EXTS:
+            hint = (" — HEIC files found; enable iPhone photo support with: "
+                    "pip install 'mvstudio[heic]'")
+        elif not names:
+            hint = " — the folder is empty; copy some photos into it first"
+        raise FileNotFoundError(f"no readable images in: {folder}{hint}")
     return records

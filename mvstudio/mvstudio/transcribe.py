@@ -31,6 +31,9 @@ def segments_to_lrc(segments: Iterable[Any]) -> str:
 def transcribe_to_lrc(audio_path: str, out_path: str,
                       model_size: str = "small",
                       language: str | None = None) -> str:
+    import os
+    if not os.path.isfile(audio_path):
+        raise FileNotFoundError(f"audio file not found: {audio_path}")
     try:
         from faster_whisper import WhisperModel
     except ImportError:

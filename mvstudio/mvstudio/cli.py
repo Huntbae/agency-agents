@@ -19,8 +19,8 @@ from .analyze import analyze_audio
 from .director import make_storyboard
 from .images import scan_images
 from .presets import load_presets
-from .render import render
-from .schema import load_storyboard, save_storyboard
+from .render import RenderError, render
+from .schema import StoryboardError, load_storyboard, save_storyboard
 
 
 def _add_output_opts(p: argparse.ArgumentParser) -> None:
@@ -73,6 +73,16 @@ def _build_storyboard(args: argparse.Namespace) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Entry point: dispatch, turning expected failures into one-line
+    messages instead of tracebacks."""
+    try:
+        return _dispatch(argv)
+    except (FileNotFoundError, StoryboardError, RenderError) as exc:
+        print(f"[mvstudio] error: {exc}", file=sys.stderr)
+        return 1
+
+
+def _dispatch(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mvstudio",
                                      description="Local beat-synced music video engine (MVP)")
     sub = parser.add_subparsers(dest="cmd", required=True)
