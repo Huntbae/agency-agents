@@ -79,6 +79,24 @@ mvstudio make song.mp3 images/ --lyrics song.lrc -o out.mp4
 drawtext/libass 의존성이 없어 어떤 FFmpeg 빌드에서도 동작합니다. 한글 폰트는
 macOS의 AppleSDGothicNeo 등을 자동 감지하며 `MVSTUDIO_FONT`로 지정할 수도 있습니다.
 
+### 가사로 영상 생성 — 사진 없이 곡·가사에 맞는 비주얼 (권장)
+
+사진을 넣지 않아도 됩니다. 가사와 구간 에너지에서 장면 프롬프트를 만들어
+**FLUX.2-klein-4B(Apache-2.0)가 구간별 이미지를 로컬 생성**하고, 그 이미지로
+뮤직비디오를 만듭니다. 생성 이미지는 태생적으로 자기 구간 전용이라
+"무관한 그림" 문제가 원천적으로 없습니다.
+
+```bash
+mvstudio transcribe song.mp3 --language ko          # 가사 추출 (없다면)
+mvstudio make song.mp3 --visuals generate --lyrics song.lrc \
+    --style "네온 야경, 시네마틱" -o out.mp4
+```
+
+- 첫 실행 시 모델(~9GB) 다운로드. 구간당 3장 기본(`--images-per-section`),
+  4스텝 증류 모델이라 장당 수십 초 수준(M시리즈)
+- 사용된 프롬프트와 이미지는 `out.gen/` 폴더에 저장되어 검수·재사용 가능
+- Ollama가 있으면 LLM이 프롬프트를 쓰고, 없어도 템플릿 폴백으로 동작
+
 ### 의미 매칭 — 곡·가사에 맞는 사진만 사용 (권장)
 
 기본(energy) 매칭은 사진의 밝기만 보고 배치하므로, 곡과 무관한 사진이 섞여

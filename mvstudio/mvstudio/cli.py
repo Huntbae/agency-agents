@@ -17,6 +17,7 @@ import sys
 
 from .analyze import analyze_audio
 from .director import make_storyboard
+from .generate import GenerationUnavailable
 from .images import scan_images
 from .presets import load_presets
 from .render import RenderError, render
@@ -46,6 +47,16 @@ def _add_director_opts(p: argparse.ArgumentParser) -> None:
                         "energy = brightness only; auto = semantic if available")
     p.add_argument("--vision-model", default="qwen3-vl:8b",
                    help="Ollama vision model for --match semantic/auto")
+    p.add_argument("--visuals", choices=["photos", "generate"], default="photos",
+                   help="generate = create images FROM the lyrics with a local "
+                        "FLUX.2 model instead of using a photo folder "
+                        "(pip install 'mvstudio[gen]')")
+    p.add_argument("--style", default=None, metavar="TEXT",
+                   help="visual style for --visuals generate, e.g. "
+                        "'네온 야경, 시네마틱'")
+    p.add_argument("--gen-model", default="flux2-klein-4b",
+                   help="mflux model for --visuals generate")
+    p.add_argument("--images-per-section", type=int, default=3)
 
 
 def _check_inputs(args: argparse.Namespace) -> None:
@@ -53,8 +64,12 @@ def _check_inputs(args: argparse.Namespace) -> None:
     if not os.path.isfile(args.song):
         raise SystemExit(f"[mvstudio] song file not found: {args.song}\n"
                          "  (tip: drag the file into the terminal to paste its path)")
-    if hasattr(args, "images") and not os.path.isdir(args.images):
-        raise SystemExit(f"[mvstudio] image folder not found: {args.images}")
+    generating = getattr(args, "visuals", "photos") == "generate"
+    if hasattr(args, "images") and not generating and (
+            args.images is None or not os.path.isdir(args.images)):
+        raise SystemExit(
+            f"[mvstudio] image folder not found: {args.images}\n"
+            "  (or use --visuals generate to create images from the lyrics)")
     if getattr(args, "lyrics", None) and not os.path.isfile(args.lyrics):
         raise SystemExit(f"[mvstudio] lyrics file not found: {args.lyrics}")
 
@@ -62,17 +77,36 @@ def _check_inputs(args: argparse.Namespace) -> None:
 def _build_storyboard(args: argparse.Namespace) -> dict:
     _check_inputs(args)
     analysis = analyze_audio(args.song)
-    images = scan_images(args.images)
     presets = load_presets(args.presets_file)
     print(f"[mvstudio] {os.path.basename(args.song)}: "
           f"{analysis['duration']:.1f}s, {analysis['bpm']:.0f} BPM, "
-          f"{len(analysis['beats'])} beats, {len(analysis['sections'])} sections, "
-          f"{len(images)} images")
+          f"{len(analysis['beats'])} beats, {len(analysis['sections'])} sections")
     lyrics = None
     if getattr(args, "lyrics", None):
         from .lyrics import parse_lrc
         lyrics = parse_lrc(args.lyrics, duration=analysis["duration"])
         print(f"[mvstudio] {len(lyrics)} lyric lines from {args.lyrics}")
+
+    if getattr(args, "visuals", "photos") == "generate":
+        from .generate import DEFAULT_STYLE, generate_visuals
+        gen_dir = os.path.splitext(args.output)[0] + ".gen"
+        _, pools = generate_visuals(
+            analysis, lyrics, gen_dir,
+            style=args.style or DEFAULT_STYLE,
+            per_section=args.images_per_section,
+            gen_model=args.gen_model, seed=args.seed,
+            width=args.width, height=args.height)
+        images = scan_images(gen_dir)
+        print(f"[mvstudio] generated {len(images)} images from the lyrics "
+              f"-> {gen_dir}/")
+        return make_storyboard(analysis, images, presets,
+                               width=args.width, height=args.height,
+                               fps=args.fps, seed=args.seed,
+                               director=args.director, model=args.model,
+                               lyrics=lyrics, pools=pools)
+
+    images = scan_images(args.images)
+    print(f"[mvstudio] {len(images)} images from {args.images}")
 
     pools = None
     match = getattr(args, "match", "auto")
@@ -103,7 +137,8 @@ def main(argv: list[str] | None = None) -> int:
     messages instead of tracebacks."""
     try:
         return _dispatch(argv)
-    except (FileNotFoundError, StoryboardError, RenderError) as exc:
+    except (FileNotFoundError, StoryboardError, RenderError,
+            GenerationUnavailable) as exc:
         print(f"[mvstudio] error: {exc}", file=sys.stderr)
         return 1
 
@@ -119,7 +154,8 @@ def _dispatch(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("storyboard", help="song + images -> storyboard JSON")
     p.add_argument("song")
-    p.add_argument("images")
+    p.add_argument("images", nargs="?", default=None,
+                   help="photo folder (optional with --visuals generate)")
     p.add_argument("-o", "--output", default="storyboard.json")
     _add_output_opts(p)
     _add_director_opts(p)
@@ -132,7 +168,8 @@ def _dispatch(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("make", help="analyze + storyboard + render in one go")
     p.add_argument("song")
-    p.add_argument("images")
+    p.add_argument("images", nargs="?", default=None,
+                   help="photo folder (optional with --visuals generate)")
     p.add_argument("-o", "--output", default="out.mp4")
     p.add_argument("--keep-temp", action="store_true")
     _add_output_opts(p)

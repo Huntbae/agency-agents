@@ -37,8 +37,9 @@ else
 fi
 .venv/bin/python -m pip install --quiet --upgrade pip
 
-echo "==> 4/5 mvstudio 설치 (가사·HEIC·MCP 포함 — 몇 분 걸릴 수 있음)"
-.venv/bin/pip install --quiet -e ".[dev,mcp,lyrics,heic]"
+echo "==> 4/5 mvstudio 설치 (가사·HEIC·MCP·이미지생성 포함 — 몇 분 걸릴 수 있음)"
+.venv/bin/pip install --quiet -e ".[dev,mcp,lyrics,heic,gen]" || \
+  .venv/bin/pip install --quiet -e ".[dev,mcp,lyrics,heic]"
 
 echo "==> 5/5 mvstudio 명령어 전역 등록"
 BIN=""

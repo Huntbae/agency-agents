@@ -28,6 +28,9 @@ lyrics = ["faster-whisper>=1.0"]
 # iPhone HEIC photo input. pillow-heif is BSD-3 but bundles libheif (LGPL-3)
 # dylibs — fine for personal use; review before commercial bundling.
 heic = ["pillow-heif>=0.16"]
+# Lyrics-to-image generation: mflux (MIT) + FLUX.2-klein-4B (Apache-2.0).
+# Apple Silicon only.
+gen = ["mflux>=0.14"]
 
 [project.scripts]
 mvstudio = "mvstudio.cli:main"
