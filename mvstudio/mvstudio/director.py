@@ -39,9 +39,12 @@ def make_storyboard(analysis: dict[str, Any], images: list[dict[str, Any]],
                     seed: int = 42, director: str = "rule",
                     model: str = "qwen3:8b",
                     lyrics: list[dict[str, Any]] | None = None,
-                    grades: dict[str, Any] | None = None) -> dict[str, Any]:
+                    grades: dict[str, Any] | None = None,
+                    pools: list[list[str]] | None = None) -> dict[str, Any]:
+    """`pools` (from semantic matching) overrides energy-based image
+    selection: pools[i] = ordered image paths allowed in section i."""
     if director == "rule":
-        cuts, name = _rule_cuts(analysis, images, presets, seed), "rule"
+        cuts, name = _rule_cuts(analysis, images, presets, seed, pools), "rule"
     elif director == "ollama":
         cuts, name = _ollama_cuts(analysis, images, presets, seed, model)
     else:
@@ -104,14 +107,15 @@ def _apply_grades_and_fades(cuts: list[dict[str, Any]],
 # ---------------------------------------------------------------- rule
 
 def _rule_cuts(analysis: dict[str, Any], images: list[dict[str, Any]],
-               presets: dict[str, dict[str, Any]], seed: int) -> list[dict[str, Any]]:
+               presets: dict[str, dict[str, Any]], seed: int,
+               pools: list[list[str]] | None = None) -> list[dict[str, Any]]:
     rng = random.Random(seed)
     duration = analysis["duration"]
     beats = [b for b in analysis["beats"] if 0.0 <= b < duration]
 
-    # Rank images by vibrance; each section draws from the slice of the
-    # ranking that matches its energy, so bright/colorful images land on
-    # choruses and muted ones on quiet parts.
+    # Without semantic pools: rank images by vibrance; each section draws
+    # from the slice of the ranking that matches its energy, so bright
+    # images land on choruses and muted ones on quiet parts.
     ranked = sorted(images, key=lambda r: r["vibrance"])
     n = len(ranked)
 
@@ -119,16 +123,19 @@ def _rule_cuts(analysis: dict[str, Any], images: list[dict[str, Any]],
     last_image: str | None = None
     last_preset: str | None = None
 
-    for section in analysis["sections"]:
+    for sec_idx, section in enumerate(analysis["sections"]):
         s_beats = [b for b in beats if section["start"] <= b < section["end"]]
         grid = sorted(set([section["start"]] + s_beats))
         step = _BEATS_PER_CUT.get(section["label"], 4)
 
-        center = section["energy"] * (n - 1)
-        spread = max(2, n // 2)
-        pool = [ranked[int(min(max(center + off, 0), n - 1))]
-                for off in range(-spread, spread + 1)]
-        pool_paths = list(dict.fromkeys(r["path"] for r in pool))
+        if pools is not None and sec_idx < len(pools) and pools[sec_idx]:
+            pool_paths = list(dict.fromkeys(pools[sec_idx]))
+        else:
+            center = section["energy"] * (n - 1)
+            spread = max(2, n // 2)
+            pool = [ranked[int(min(max(center + off, 0), n - 1))]
+                    for off in range(-spread, spread + 1)]
+            pool_paths = list(dict.fromkeys(r["path"] for r in pool))
 
         i = 0
         while i < len(grid):

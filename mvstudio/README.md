@@ -79,6 +79,24 @@ mvstudio make song.mp3 images/ --lyrics song.lrc -o out.mp4
 drawtext/libass 의존성이 없어 어떤 FFmpeg 빌드에서도 동작합니다. 한글 폰트는
 macOS의 AppleSDGothicNeo 등을 자동 감지하며 `MVSTUDIO_FONT`로 지정할 수도 있습니다.
 
+### 의미 매칭 — 곡·가사에 맞는 사진만 사용 (권장)
+
+기본(energy) 매칭은 사진의 밝기만 보고 배치하므로, 곡과 무관한 사진이 섞여
+있으면 그대로 영상에 들어갑니다. **의미 매칭**을 켜면 로컬 비전 모델이 모든
+사진의 내용을 파악한 뒤, 곡의 분위기·가사와 **무관한 사진은 자동으로 제외**하고
+관련 사진을 해당 가사 구간에 배치합니다. 전부 로컬에서 실행됩니다.
+
+```bash
+brew install ollama && brew services start ollama
+ollama pull qwen3-vl:8b && ollama pull qwen3:8b     # 최초 1회 (약 10GB)
+
+mvstudio make song.mp3 photos/ --lyrics song.lrc -o out.mp4
+```
+
+Ollama가 실행 중이면 자동으로 의미 매칭이 켜지고(`--match auto` 기본값),
+어떤 사진이 제외됐는지 출력합니다. 강제하려면 `--match semantic`,
+끄려면 `--match energy`.
+
 ### 컬러 그레이딩·트랜지션 (자동)
 
 구간 에너지에 따라 컬러 그레이드가 자동 적용됩니다(조용한 구간 `cool_muted` →

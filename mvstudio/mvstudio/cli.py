@@ -39,6 +39,13 @@ def _add_director_opts(p: argparse.ArgumentParser) -> None:
                    help="alternative camera_presets.json")
     p.add_argument("--lyrics", default=None, metavar="LRC",
                    help=".lrc file to burn as subtitles (see also: transcribe)")
+    p.add_argument("--match", choices=["auto", "semantic", "energy"],
+                   default="auto",
+                   help="image selection: semantic = local VLM matches photos "
+                        "to lyrics/mood and drops unrelated ones (needs Ollama); "
+                        "energy = brightness only; auto = semantic if available")
+    p.add_argument("--vision-model", default="qwen3-vl:8b",
+                   help="Ollama vision model for --match semantic/auto")
 
 
 def _check_inputs(args: argparse.Namespace) -> None:
@@ -66,10 +73,29 @@ def _build_storyboard(args: argparse.Namespace) -> dict:
         from .lyrics import parse_lrc
         lyrics = parse_lrc(args.lyrics, duration=analysis["duration"])
         print(f"[mvstudio] {len(lyrics)} lyric lines from {args.lyrics}")
+
+    pools = None
+    match = getattr(args, "match", "auto")
+    if match != "energy":
+        from .semantic import SemanticUnavailable, semantic_match
+        try:
+            pools, excluded = semantic_match(
+                analysis, images, lyrics,
+                vision_model=args.vision_model, text_model=args.model)
+            print(f"[mvstudio] semantic match: {len(excluded)}/{len(images)} "
+                  "photos excluded as unrelated to the song")
+            for path in excluded:
+                print(f"[mvstudio]   excluded: {os.path.basename(path)}")
+        except SemanticUnavailable as exc:
+            if match == "semantic":
+                raise SystemExit(f"[mvstudio] semantic matching unavailable:\n{exc}")
+            print(f"[mvstudio] semantic matching unavailable, using energy "
+                  f"matching. To enable:\n{exc}")
+
     return make_storyboard(analysis, images, presets,
                            width=args.width, height=args.height, fps=args.fps,
                            seed=args.seed, director=args.director,
-                           model=args.model, lyrics=lyrics)
+                           model=args.model, lyrics=lyrics, pools=pools)
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -59,11 +59,15 @@ def generate_storyboard(song_path: str, images_dir: str,
                         width: int = 1920, height: int = 1080, fps: int = 30,
                         seed: int = 42, director: str = "rule",
                         model: str = "qwen3:8b",
-                        lyrics_path: str | None = None) -> dict[str, Any]:
+                        lyrics_path: str | None = None,
+                        match: str = "auto") -> dict[str, Any]:
     """Analyze a song and an image folder, then write a beat-synced
     storyboard JSON. director='rule' is deterministic; director='ollama'
     uses a local LLM and falls back to the rule director on failure.
     Pass lyrics_path (.lrc) to burn synced lyric subtitles.
+    match='semantic' uses a local vision model to match photos to the
+    lyrics/mood and drop unrelated ones (requires Ollama); 'energy' uses
+    brightness only; 'auto' tries semantic and falls back.
     Returns a summary plus the storyboard path (edit it, then render)."""
     analysis = analyze_audio(_abs(song_path))
     images = scan_images(_abs(images_dir))
@@ -72,9 +76,20 @@ def generate_storyboard(song_path: str, images_dir: str,
     if lyrics_path:
         from .lyrics import parse_lrc
         lyrics = parse_lrc(_abs(lyrics_path), duration=analysis["duration"])
+
+    pools, excluded = None, []
+    if match != "energy":
+        from .semantic import SemanticUnavailable, semantic_match
+        try:
+            pools, excluded = semantic_match(analysis, images, lyrics,
+                                             text_model=model)
+        except SemanticUnavailable as exc:
+            if match == "semantic":
+                raise RuntimeError(f"semantic matching unavailable: {exc}")
+
     sb = make_storyboard(analysis, images, presets, width=width, height=height,
                          fps=fps, seed=seed, director=director, model=model,
-                         lyrics=lyrics)
+                         lyrics=lyrics, pools=pools)
     out = _abs(storyboard_path)
     save_storyboard(sb, out)
     return {
@@ -84,6 +99,7 @@ def generate_storyboard(song_path: str, images_dir: str,
         "sections": sb["sections"],
         "cut_count": len(sb["cuts"]),
         "director": sb["meta"]["director"],
+        "excluded_images": excluded,
     }
 
 
@@ -104,7 +120,8 @@ def make_music_video(song_path: str, images_dir: str,
                      width: int = 1920, height: int = 1080, fps: int = 30,
                      seed: int = 42, director: str = "rule",
                      model: str = "qwen3:8b",
-                     lyrics_path: str | None = None) -> dict[str, Any]:
+                     lyrics_path: str | None = None,
+                     match: str = "auto") -> dict[str, Any]:
     """Full pipeline in one call: analyze the song, direct a beat-synced
     storyboard from the image folder, and render the mp4 (with lyric
     subtitles if lyrics_path is given). Also writes <output>.storyboard.json
@@ -113,7 +130,7 @@ def make_music_video(song_path: str, images_dir: str,
     summary = generate_storyboard(song_path, images_dir, sb_path,
                                   width=width, height=height, fps=fps,
                                   seed=seed, director=director, model=model,
-                                  lyrics_path=lyrics_path)
+                                  lyrics_path=lyrics_path, match=match)
     result = render_video(sb_path, output_path)
     return {**summary, **result}
 
