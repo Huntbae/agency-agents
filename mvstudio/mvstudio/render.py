@@ -24,8 +24,6 @@ def _log(msg: str) -> None:
 # frame is what prevents the classic zoompan jitter.
 SUPERSAMPLE = 3
 
-FADE_SECONDS = 0.6
-
 
 class RenderError(RuntimeError):
     pass
@@ -84,15 +82,27 @@ def _zoompan_filter(preset: dict[str, Any], frames: int, width: int,
     )
 
 
+def _eq_filter(grade_params: dict[str, Any]) -> str:
+    args = ":".join(f"{k}={v}" for k, v in grade_params.items())
+    return f"eq={args}"
+
+
 def render(sb: dict[str, Any], presets: dict[str, dict[str, Any]],
            output: str, workdir: str | None = None,
-           keep_temp: bool = False) -> str:
+           keep_temp: bool = False,
+           grades: dict[str, Any] | None = None) -> str:
     ffmpeg = find_ffmpeg()
     encoder, enc_args = pick_encoder(ffmpeg)
     out_cfg = sb["output"]
     width, height, fps = out_cfg["width"], out_cfg["height"], out_cfg["fps"]
     duration = sb["audio"]["duration"]
     cuts = sb["cuts"]
+    lyrics = sb.get("lyrics") or []
+
+    if grades is None:
+        from .presets import load_grades
+        grades = load_grades()
+    grade_table = grades.get("grades", {})
 
     tmp = workdir or tempfile.mkdtemp(prefix="mvstudio-")
     os.makedirs(tmp, exist_ok=True)
@@ -102,10 +112,15 @@ def render(sb: dict[str, Any], presets: dict[str, dict[str, Any]],
             dur = cut["end"] - cut["start"]
             frames = max(int(round(dur * fps)), 1)
             vf = _zoompan_filter(presets[cut["preset"]], frames, width, height, fps)
-            if i == 0:
-                vf += f",fade=t=in:st=0:d={FADE_SECONDS}"
-            if i == len(cuts) - 1 and dur > FADE_SECONDS:
-                vf += f",fade=t=out:st={dur - FADE_SECONDS:.3f}:d={FADE_SECONDS}"
+            grade = grade_table.get(cut.get("grade", ""), {})
+            if grade:
+                vf += f",{_eq_filter(grade)}"
+            fade_in = float(cut.get("fade_in", 0) or 0)
+            fade_out = float(cut.get("fade_out", 0) or 0)
+            if fade_in > 0:
+                vf += f",fade=t=in:st=0:d={fade_in:.3f}"
+            if 0 < fade_out < dur:
+                vf += f",fade=t=out:st={dur - fade_out:.3f}:d={fade_out:.3f}"
             clip = os.path.join(tmp, f"cut_{i:04d}.mp4")
             _run([ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
                   "-i", cut["image"], "-vf", vf, "-frames:v", str(frames),
@@ -119,14 +134,51 @@ def render(sb: dict[str, Any], presets: dict[str, dict[str, Any]],
             for p in clip_paths:
                 f.write(f"file '{p}'\n")
 
+        base = os.path.join(tmp, "base.mp4") if lyrics else output
         _run([ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
               "-f", "concat", "-safe", "0", "-i", concat_list,
               "-i", sb["audio"]["path"],
               "-map", "0:v:0", "-map", "1:a:0",
               "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
               "-af", f"afade=t=out:st={max(duration - 1.0, 0):.3f}:d=1.0",
-              "-t", f"{duration:.3f}", "-movflags", "+faststart", output])
+              "-t", f"{duration:.3f}", "-movflags", "+faststart", base])
+
+        if lyrics:
+            _log(f"[mvstudio] burning {len(lyrics)} lyric lines")
+            _overlay_lyrics(ffmpeg, encoder, enc_args, base, lyrics,
+                            width, height, tmp, output)
     finally:
         if not keep_temp and workdir is None:
             shutil.rmtree(tmp, ignore_errors=True)
     return output
+
+
+# One extra encode pass; kept separate so the lyric-free path stays a fast
+# stream-copy concat. Still images stay available to `overlay` past their
+# single frame via the filter's default eof_action=repeat.
+def _overlay_lyrics(ffmpeg: str, encoder: str, enc_args: list[str],
+                    base: str, lyrics: list[dict[str, Any]],
+                    width: int, height: int, tmp: str, output: str) -> None:
+    from .lyrics import render_line_png
+
+    cmd = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-i", base]
+    png_index: dict[str, int] = {}
+    for line in lyrics:
+        if line["text"] not in png_index:
+            path = os.path.join(tmp, f"lyric_{len(png_index):04d}.png")
+            render_line_png(line["text"], width, height, path)
+            png_index[line["text"]] = len(png_index) + 1  # input #0 is video
+            cmd += ["-i", path]
+
+    chain, src = [], "[0:v]"
+    for i, line in enumerate(lyrics):
+        idx = png_index[line["text"]]
+        out_label = f"[v{i}]"
+        chain.append(f"{src}[{idx}:v]overlay=0:0:"
+                     f"enable='between(t,{line['start']},{line['end']})'"
+                     f"{out_label}")
+        src = out_label
+    cmd += ["-filter_complex", ";".join(chain), "-map", src, "-map", "0:a",
+            "-c:v", encoder, *enc_args, "-c:a", "copy",
+            "-movflags", "+faststart", output]
+    _run(cmd)

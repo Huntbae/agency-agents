@@ -91,10 +91,27 @@ def validate_storyboard(sb: dict[str, Any], known_presets: set[str] | None = Non
         if known_presets is not None:
             _require(preset in known_presets,
                      f"cuts[{i}] unknown preset: {preset!r}")
+        if "grade" in cut:
+            _require(isinstance(cut["grade"], str) and cut["grade"],
+                     f"cuts[{i}].grade must be a non-empty string")
+        for key in ("fade_in", "fade_out"):
+            if key in cut:
+                _require(isinstance(cut[key], (int, float)) and cut[key] >= 0,
+                         f"cuts[{i}].{key} must be a non-negative number")
         prev_end = end
 
     _require(abs(prev_end - duration) <= max(TIME_EPS, 0.05),
              f"cuts end at {prev_end}, audio duration is {duration}")
+
+    lyrics = sb.get("lyrics")
+    if lyrics is not None:
+        _require(isinstance(lyrics, list), "lyrics must be a list")
+        for i, line in enumerate(lyrics):
+            _require(isinstance(line, dict) and isinstance(line.get("text"), str)
+                     and line["text"], f"lyrics[{i}].text is required")
+            start, end = line.get("start"), line.get("end")
+            _require(isinstance(start, (int, float)) and isinstance(end, (int, float))
+                     and 0 <= start < end, f"lyrics[{i}] bad start/end")
     return sb
 
 

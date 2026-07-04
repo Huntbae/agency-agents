@@ -66,6 +66,28 @@ mvstudio make song.wav images/ --director ollama --model qwen3:8b -o out.mp4
 mvstudio presets
 ```
 
+### 리릭 비디오 모드 (가사 자막)
+
+```bash
+# .lrc 가사 파일이 있으면 바로 번인
+mvstudio make song.mp3 images/ --lyrics song.lrc -o out.mp4
+
+# 가사 파일이 없으면 로컬 Whisper로 추출 (선택 설치: pip install -e ".[lyrics]")
+mvstudio transcribe song.mp3 --language ko     # → song.lrc 생성
+mvstudio make song.mp3 images/ --lyrics song.lrc -o out.mp4
+```
+
+자막은 Pillow로 투명 PNG에 렌더한 뒤 FFmpeg 코어 `overlay` 필터로 합성합니다 —
+drawtext/libass 의존성이 없어 어떤 FFmpeg 빌드에서도 동작합니다. 한글 폰트는
+macOS의 AppleSDGothicNeo 등을 자동 감지하며 `MVSTUDIO_FONT`로 지정할 수도 있습니다.
+
+### 컬러 그레이딩·트랜지션 (자동)
+
+구간 에너지에 따라 컬러 그레이드가 자동 적용됩니다(조용한 구간 `cool_muted` →
+코러스 `punchy`; `mvstudio/presets_data/color_grades.json`에 데이터로 정의).
+구간 경계에는 0.15초 딥 트랜지션이 들어갑니다. 스토리보드 JSON의 컷별
+`grade`/`fade_in`/`fade_out` 필드를 수정해 손으로 바꿀 수 있습니다.
+
 ## MCP 서버 (Phase 0.5) — Claude가 UI가 되는 경로
 
 엔진을 MCP 도구로 노출합니다. Claude Desktop/Code 등 MCP 클라이언트에서
@@ -122,8 +144,10 @@ cd mvstudio && pytest -q     # 합성 곡으로 엔드투엔드 렌더까지 검
 
 - Phase 0 (완료): CLI 엔진 코어 + 스토리보드 JSON + T1 프리셋
 - Phase 0.5 (완료): 로컬 MCP 서버 (엔진 함수를 MCP 도구로 노출 — Claude가 UI가 됨)
+- Phase 2a (완료): 가사 동기화 — LRC 자막 번인 + Whisper 추출(faster-whisper, 선택),
+  구간별 컬러 그레이딩, 구간 경계 딥 트랜지션
 - Phase 1: 타임라인 GUI (Tauri) + 모델 매니저 (RAM 감지 → 기능 게이팅)
-- Phase 2: whisper.cpp 가사 동기화, Qwen3-VL 이미지 이해, FLUX.2-klein 보충 이미지
+- Phase 2b: Qwen3-VL 이미지 이해, FLUX.2-klein 보충 이미지
 - Phase 3: Wan2.2 클립 생성(백그라운드 큐), T2/T3 카메라 프리셋
 - Phase 4: SwiftUI + AVFoundation 네이티브 앱 (FFmpeg LGPL 이슈 완전 해소)
 

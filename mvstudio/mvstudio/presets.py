@@ -27,6 +27,15 @@ def load_presets(path: str | None = None) -> dict[str, dict[str, Any]]:
     return presets
 
 
+def load_grades(path: str | None = None) -> dict[str, Any]:
+    """Color grade table: {"grades": {id: eq-params}, "by_label": {...}}."""
+    if path is not None:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    ref = resources.files("mvstudio") / "presets_data" / "color_grades.json"
+    return json.loads(ref.read_text(encoding="utf-8"))
+
+
 def pick_preset(presets: dict[str, dict[str, Any]], energy: float,
                 rng: random.Random, avoid: str | None = None) -> str:
     """Pick a preset whose energy affinity contains `energy`.

@@ -37,6 +37,8 @@ def _add_director_opts(p: argparse.ArgumentParser) -> None:
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--presets-file", default=None,
                    help="alternative camera_presets.json")
+    p.add_argument("--lyrics", default=None, metavar="LRC",
+                   help=".lrc file to burn as subtitles (see also: transcribe)")
 
 
 def _build_storyboard(args: argparse.Namespace) -> dict:
@@ -47,10 +49,15 @@ def _build_storyboard(args: argparse.Namespace) -> dict:
           f"{analysis['duration']:.1f}s, {analysis['bpm']:.0f} BPM, "
           f"{len(analysis['beats'])} beats, {len(analysis['sections'])} sections, "
           f"{len(images)} images")
+    lyrics = None
+    if getattr(args, "lyrics", None):
+        from .lyrics import parse_lrc
+        lyrics = parse_lrc(args.lyrics, duration=analysis["duration"])
+        print(f"[mvstudio] {len(lyrics)} lyric lines from {args.lyrics}")
     return make_storyboard(analysis, images, presets,
                            width=args.width, height=args.height, fps=args.fps,
                            seed=args.seed, director=args.director,
-                           model=args.model)
+                           model=args.model, lyrics=lyrics)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -87,11 +94,26 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("doctor", help="environment check + end-to-end self-test")
 
+    p = sub.add_parser("transcribe",
+                       help="extract lyrics to .lrc via whisper (pip install 'mvstudio[lyrics]')")
+    p.add_argument("song")
+    p.add_argument("-o", "--output", default=None, help="default: <song>.lrc")
+    p.add_argument("--whisper-model", default="small",
+                   help="tiny/base/small/medium/large-v3-turbo")
+    p.add_argument("--language", default=None, help="e.g. ko, en (default: auto)")
+
     args = parser.parse_args(argv)
 
     if args.cmd == "doctor":
         from .doctor import run_doctor
         return run_doctor()
+
+    if args.cmd == "transcribe":
+        from .transcribe import transcribe_to_lrc
+        out = args.output or os.path.splitext(args.song)[0] + ".lrc"
+        transcribe_to_lrc(args.song, out, model_size=args.whisper_model,
+                          language=args.language)
+        return 0
 
     if args.cmd == "analyze":
         result = analyze_audio(args.song)

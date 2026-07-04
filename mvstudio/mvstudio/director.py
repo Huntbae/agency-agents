@@ -20,11 +20,15 @@ from typing import Any
 
 from . import __version__
 from .presets import pick_preset
-from .schema import MIN_CUT_SECONDS, SCHEMA_VERSION, validate_storyboard
+from .schema import (MIN_CUT_SECONDS, SCHEMA_VERSION, TIME_EPS,
+                     validate_storyboard)
 
 # Beats per cut by section label; the rule director occasionally doubles
 # the length for variety so cuts don't feel metronomic.
 _BEATS_PER_CUT = {"high": 2, "mid": 4, "low": 8}
+
+END_FADE_SECONDS = 0.6   # fade in/out at the very start/end of the video
+DIP_SECONDS = 0.15       # quick dip-to-black on section boundaries
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 
@@ -33,13 +37,20 @@ def make_storyboard(analysis: dict[str, Any], images: list[dict[str, Any]],
                     presets: dict[str, dict[str, Any]],
                     width: int = 1920, height: int = 1080, fps: int = 30,
                     seed: int = 42, director: str = "rule",
-                    model: str = "qwen3:8b") -> dict[str, Any]:
+                    model: str = "qwen3:8b",
+                    lyrics: list[dict[str, Any]] | None = None,
+                    grades: dict[str, Any] | None = None) -> dict[str, Any]:
     if director == "rule":
         cuts, name = _rule_cuts(analysis, images, presets, seed), "rule"
     elif director == "ollama":
         cuts, name = _ollama_cuts(analysis, images, presets, seed, model)
     else:
         raise ValueError(f"unknown director: {director!r}")
+
+    if grades is None:
+        from .presets import load_grades
+        grades = load_grades()
+    _apply_grades_and_fades(cuts, analysis["sections"], grades)
 
     sb = {
         "version": SCHEMA_VERSION,
@@ -50,7 +61,44 @@ def make_storyboard(analysis: dict[str, Any], images: list[dict[str, Any]],
         "sections": analysis["sections"],
         "cuts": cuts,
     }
+    if lyrics:
+        sb["lyrics"] = lyrics
     return validate_storyboard(sb, known_presets=set(presets))
+
+
+def _apply_grades_and_fades(cuts: list[dict[str, Any]],
+                            sections: list[dict[str, Any]],
+                            grades: dict[str, Any]) -> None:
+    """Post-pass: color grade per section label + fades.
+
+    Long fade in/out at the very ends; a short "dip" on section boundaries
+    (fade out the last cut of a section, fade in the first cut of the next)
+    — a cheap transition that keeps the fast concat-copy render path.
+    """
+    by_label = grades.get("by_label", {})
+    known = grades.get("grades", {})
+
+    def section_of(t: float) -> dict[str, Any]:
+        for s in sections:
+            if s["start"] - TIME_EPS <= t < s["end"]:
+                return s
+        return sections[-1]
+
+    boundaries = [s["end"] for s in sections[:-1]]
+    for cut in cuts:
+        label = section_of((cut["start"] + cut["end"]) / 2).get("label", "mid")
+        grade = by_label.get(label)
+        if grade and known.get(grade):  # skip empty grades like "none"
+            cut["grade"] = grade
+        if any(abs(cut["end"] - b) <= 0.05 for b in boundaries):
+            cut["fade_out"] = DIP_SECONDS
+        if any(abs(cut["start"] - b) <= 0.05 for b in boundaries):
+            cut["fade_in"] = DIP_SECONDS
+
+    if cuts:
+        cuts[0]["fade_in"] = END_FADE_SECONDS
+        if cuts[-1]["end"] - cuts[-1]["start"] > END_FADE_SECONDS:
+            cuts[-1]["fade_out"] = END_FADE_SECONDS
 
 
 # ---------------------------------------------------------------- rule
