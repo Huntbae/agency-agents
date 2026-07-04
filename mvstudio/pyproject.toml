@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mvstudio"
+version = "0.1.0"
+description = "Local-first, beat-synced music video engine (Phase 0 MVP): audio analysis -> storyboard JSON -> deterministic FFmpeg render"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "librosa>=0.10",
+    "soundfile>=0.12",
+    "numpy>=1.24",
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+# Bundled FFmpeg for development convenience only.
+# For commercial distribution, ship an LGPL FFmpeg build (no --enable-gpl,
+# no libx264/libx265) and prefer h264_videotoolbox on macOS. See README.
+dev = ["imageio-ffmpeg>=0.4", "pytest>=7"]
+
+[project.scripts]
+mvstudio = "mvstudio.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mvstudio*"]

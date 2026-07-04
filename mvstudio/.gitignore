@@ -1,0 +1,8 @@
+__pycache__/
+*.egg-info/
+.pytest_cache/
+demo_assets/
+*.mp4
+*.storyboard.json
+analysis.json
+storyboard.json
