@@ -38,8 +38,12 @@ fi
 .venv/bin/python -m pip install --quiet --upgrade pip
 
 echo "==> 4/5 mvstudio 설치 (가사·HEIC·MCP·이미지생성 포함 — 몇 분 걸릴 수 있음)"
-.venv/bin/pip install --quiet -e ".[dev,mcp,lyrics,heic,gen]" || \
+if ! .venv/bin/pip install --quiet -e ".[dev,mcp,lyrics,heic,gen]"; then
+  echo "    경고: 이미지 생성(mflux) 포함 설치 실패 — 원인을 표시합니다:"
+  .venv/bin/pip install -e ".[dev,mcp,lyrics,heic,gen]" 2>&1 | tail -15 || true
+  echo "    이미지 생성 제외하고 계속 설치합니다 (--visuals generate 사용 불가)"
   .venv/bin/pip install --quiet -e ".[dev,mcp,lyrics,heic]"
+fi
 
 echo "==> 5/5 mvstudio 명령어 전역 등록"
 BIN=""
