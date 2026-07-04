@@ -67,9 +67,11 @@ def _segment(y: np.ndarray, sr: int, beat_times: np.ndarray,
         sync = librosa.util.sync(feats, beat_frames, aggregate=np.mean)
         if sync.shape[1] <= k:
             raise ValueError("too few beats to segment")
-        seg_ids = librosa.segment.agglomerative(sync, k)
-        change = np.flatnonzero(np.diff(seg_ids)) + 1
-        boundaries = [float(beat_times[min(i, len(beat_times) - 1)]) for i in change]
+        # agglomerative returns the k left-boundary indices (first is 0)
+        # into the beat-synchronous frames, not per-frame segment ids.
+        bounds = librosa.segment.agglomerative(sync, k)
+        boundaries = [float(beat_times[min(int(i), len(beat_times) - 1)])
+                      for i in bounds[1:]]
     except Exception:
         boundaries = [duration * i / k for i in range(1, k)]
 

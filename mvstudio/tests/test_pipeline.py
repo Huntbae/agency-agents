@@ -57,6 +57,11 @@ def test_analysis_and_storyboard(assets):
     assert 100 <= analysis["bpm"] <= 140  # synthetic track is 120 BPM
     assert len(analysis["beats"]) > 10
     assert analysis["sections"][0]["start"] == 0.0
+    # the demo track has a quiet 8s intro then a groove: segmentation must
+    # find at least 2 sections and rank the intro's energy lowest
+    assert len(analysis["sections"]) >= 2
+    energies = [s["energy"] for s in analysis["sections"]]
+    assert energies[0] == min(energies)
 
     pool = scan_images(images)
     assert len(pool) == 6
@@ -89,6 +94,38 @@ def test_storyboard_rejects_gap():
     }
     with pytest.raises(StoryboardError):
         validate_storyboard(sb)
+
+
+def test_mp3_input(assets, tmp_path):
+    """librosa must decode mp3 (libsndfile >= 1.1); the whole pipeline is
+    format-agnostic after load."""
+    song, _ = assets
+    mp3 = str(tmp_path / "demo.mp3")
+    subprocess.run([find_ffmpeg(), "-y", "-loglevel", "error", "-i", song, mp3],
+                   check=True)
+    analysis = analyze_audio(mp3)
+    assert abs(analysis["duration"] - 24.0) < 0.2
+
+
+def test_portrait_image_render(assets, tmp_path):
+    """Portrait/odd-aspect images must be cover-cropped, not distorted."""
+    song, _ = assets
+    from PIL import Image
+    imgdir = tmp_path / "portrait"
+    imgdir.mkdir()
+    Image.new("RGB", (600, 1200), (200, 60, 60)).save(imgdir / "p1.png")
+    Image.new("RGB", (500, 500), (60, 200, 60)).save(imgdir / "p2.png")
+
+    analysis = analyze_audio(song)
+    pool = scan_images(str(imgdir))
+    presets = load_presets()
+    sb = make_storyboard(analysis, pool, presets, width=640, height=360,
+                         fps=24, seed=3)
+    out = str(tmp_path / "portrait.mp4")
+    render(sb, presets, out)
+    probe = subprocess.run([find_ffmpeg(), "-hide_banner", "-i", out],
+                           capture_output=True, text=True).stderr
+    assert "640x360" in probe
 
 
 def test_end_to_end_render(assets, tmp_path):

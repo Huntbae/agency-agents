@@ -11,8 +11,14 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from typing import Any
+
+
+def _log(msg: str) -> None:
+    # stderr, never stdout: the MCP server speaks JSON-RPC on stdout.
+    print(msg, file=sys.stderr, flush=True)
 
 # Upscale factor applied before zoompan; sub-pixel motion on the enlarged
 # frame is what prevents the classic zoompan jitter.
@@ -47,8 +53,8 @@ def pick_encoder(ffmpeg: str) -> tuple[str, list[str]]:
     if "libopenh264" in out:
         return "libopenh264", ["-b:v", "8M"]
     if "libx264" in out:
-        print("[mvstudio] WARNING: encoding with libx264 (GPL). Fine for local "
-              "development; do NOT ship this FFmpeg build in a commercial app.")
+        _log("[mvstudio] WARNING: encoding with libx264 (GPL). Fine for local "
+             "development; do NOT ship this FFmpeg build in a commercial app.")
         return "libx264", ["-preset", "veryfast", "-crf", "20"]
     return "mpeg4", ["-q:v", "4"]
 
@@ -105,8 +111,8 @@ def render(sb: dict[str, Any], presets: dict[str, dict[str, Any]],
                   "-i", cut["image"], "-vf", vf, "-frames:v", str(frames),
                   "-c:v", encoder, *enc_args, "-an", clip])
             clip_paths.append(clip)
-            print(f"[mvstudio] cut {i + 1}/{len(cuts)} "
-                  f"({cut['preset']}, {dur:.2f}s)", flush=True)
+            _log(f"[mvstudio] cut {i + 1}/{len(cuts)} "
+                 f"({cut['preset']}, {dur:.2f}s)")
 
         concat_list = os.path.join(tmp, "concat.txt")
         with open(concat_list, "w", encoding="utf-8") as f:

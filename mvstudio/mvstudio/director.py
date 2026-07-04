@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import random
+import sys
 import urllib.request
 from typing import Any
 
@@ -163,7 +164,8 @@ def _ollama_cuts(analysis: dict[str, Any], images: list[dict[str, Any]],
             raise ValueError("LLM produced no usable cuts")
         return cuts, f"ollama:{model}"
     except Exception as exc:  # any failure degrades to the rule director
-        print(f"[mvstudio] ollama director failed ({exc}); falling back to rule director")
+        print(f"[mvstudio] ollama director failed ({exc}); falling back to "
+              "rule director", file=sys.stderr, flush=True)
         return _rule_cuts(analysis, images, presets, seed), "rule(fallback)"
 
 

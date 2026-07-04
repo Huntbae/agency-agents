@@ -21,9 +21,12 @@ dependencies = [
 # For commercial distribution, ship an LGPL FFmpeg build (no --enable-gpl,
 # no libx264/libx265) and prefer h264_videotoolbox on macOS. See README.
 dev = ["imageio-ffmpeg>=0.4", "pytest>=7"]
+# MCP server (Phase 0.5): expose the engine as agent tools (MIT SDK).
+mcp = ["mcp>=1.0"]
 
 [project.scripts]
 mvstudio = "mvstudio.cli:main"
+mvstudio-mcp = "mvstudio.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["mvstudio*"]

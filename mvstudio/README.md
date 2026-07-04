@@ -51,6 +51,27 @@ mvstudio make song.wav images/ --director ollama --model qwen3:8b -o out.mp4
 mvstudio presets
 ```
 
+## MCP 서버 (Phase 0.5) — Claude가 UI가 되는 경로
+
+엔진을 MCP 도구로 노출합니다. Claude Desktop/Code 등 MCP 클라이언트에서
+*"이 폴더의 사진들로 이 곡 뮤직비디오 만들어줘"* 가 한 문장으로 동작합니다.
+Higgsfield MCP의 로컬 대응물 — 크레딧 없음, 파일이 기기를 떠나지 않음.
+
+```bash
+pip install -e ".[mcp]"       # MCP SDK (MIT) 추가 설치
+```
+
+Claude Desktop / Claude Code 설정:
+
+```json
+{ "mcpServers": { "mvstudio": { "command": "mvstudio-mcp" } } }
+```
+
+제공 도구: `analyze_song`, `list_camera_presets`, `generate_storyboard`,
+`inspect_storyboard`, `render_video`, `make_music_video`.
+스토리보드 JSON을 에이전트가 수정한 뒤 `render_video`를 다시 부르는 편집 루프를 지원합니다.
+(주의: stdio 서버이므로 엔진 로그는 전부 stderr로 나갑니다 — stdout은 JSON-RPC 전용.)
+
 `make`는 최종 mp4 옆에 `*.storyboard.json`을 함께 남기므로, JSON을 수정하고
 `mvstudio render`로 다시 뽑는 편집 루프가 MVP에서도 이미 가능합니다.
 
@@ -84,8 +105,8 @@ cd mvstudio && pytest -q     # 합성 곡으로 엔드투엔드 렌더까지 검
 
 ## 로드맵
 
-- Phase 0 (이 MVP): CLI 엔진 코어 + 스토리보드 JSON + T1 프리셋
-- Phase 0.5: 로컬 MCP 서버 (엔진 함수를 MCP 도구로 노출 — Claude가 UI가 됨)
+- Phase 0 (완료): CLI 엔진 코어 + 스토리보드 JSON + T1 프리셋
+- Phase 0.5 (완료): 로컬 MCP 서버 (엔진 함수를 MCP 도구로 노출 — Claude가 UI가 됨)
 - Phase 1: 타임라인 GUI (Tauri) + 모델 매니저 (RAM 감지 → 기능 게이팅)
 - Phase 2: whisper.cpp 가사 동기화, Qwen3-VL 이미지 이해, FLUX.2-klein 보충 이미지
 - Phase 3: Wan2.2 클립 생성(백그라운드 큐), T2/T3 카메라 프리셋

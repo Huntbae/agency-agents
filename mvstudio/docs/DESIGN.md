@@ -88,7 +88,7 @@ RAM 폴백 체인을 선언한다.
 ## 7. 로드맵
 
 1. **Phase 0 (완료 — 이 MVP)**: CLI 엔진 코어, 스토리보드 JSON 스키마, rule/ollama 감독, T1 프리셋 12종, FFmpeg 렌더러, e2e 테스트
-2. **Phase 0.5**: 로컬 MCP 서버 — GUI보다 먼저 출시 가능한 카드 (Claude가 UI)
+2. **Phase 0.5 (완료)**: 로컬 MCP 서버 (`mvstudio-mcp`, stdio) — 6개 도구 노출, 실제 JSON-RPC 교환으로 e2e 검증. GUI보다 먼저 출시 가능한 카드 (Claude가 UI)
 3. **Phase 1**: Tauri 타임라인 UI + 모델 매니저(RAM 게이팅)
 4. **Phase 2**: whisper.cpp 가사 동기화(리릭 비디오 모드), Qwen3-VL 이미지 이해, FLUX.2-klein 보충 이미지
 5. **Phase 3**: Wan2.2 클립 생성(백그라운드 큐+저해상도 프리뷰), T2/T3 프리셋
