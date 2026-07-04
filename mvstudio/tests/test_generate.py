@@ -93,7 +93,9 @@ def test_generate_visuals_pools_and_render(assets, tmp_path):
 
 
 def test_generation_unavailable_message():
+    # on non-Apple-Silicon (this CI container) the self-installer must NOT
+    # attempt pip and must explain the platform requirement instead
     with pytest.raises(GenerationUnavailable) as exc:
         from mvstudio.generate import _mflux_generator
         _mflux_generator("flux2-klein-4b", 640, 360)
-    assert "mvstudio[gen]" in str(exc.value)
+    assert "Apple Silicon" in str(exc.value)
