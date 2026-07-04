@@ -5,6 +5,7 @@
   mvstudio render STORYBOARD -o out.mp4
   mvstudio make SONG IMAGE_DIR -o out.mp4      # analyze + storyboard + render
   mvstudio presets                             # list camera presets
+  mvstudio doctor                              # env check + self-test render
 """
 
 from __future__ import annotations
@@ -84,7 +85,13 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("presets", help="list camera presets")
 
+    sub.add_parser("doctor", help="environment check + end-to-end self-test")
+
     args = parser.parse_args(argv)
+
+    if args.cmd == "doctor":
+        from .doctor import run_doctor
+        return run_doctor()
 
     if args.cmd == "analyze":
         result = analyze_audio(args.song)

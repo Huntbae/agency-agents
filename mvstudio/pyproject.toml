@@ -30,3 +30,6 @@ mvstudio-mcp = "mvstudio.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["mvstudio*"]
+
+[tool.setuptools.package-data]
+mvstudio = ["presets_data/*.json"]

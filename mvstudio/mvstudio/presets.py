@@ -1,25 +1,26 @@
 """Camera preset registry.
 
-Presets live in presets/camera_presets.json as data so that (a) new motion
-styles ship without code changes, (b) higher tiers (t2 depth-parallax,
-t3 generative Wan2.2 Fun Camera) can extend the same records, and (c) a
-community preset ecosystem has a stable unit of sharing.
+Presets live in presets_data/camera_presets.json (shipped as package data)
+so that (a) new motion styles ship without code changes, (b) higher tiers
+(t2 depth-parallax, t3 generative Wan2.2 Fun Camera) can extend the same
+records, and (c) a community preset ecosystem has a stable unit of sharing.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import random
+from importlib import resources
 from typing import Any
-
-_DEFAULT_PATH = os.path.join(os.path.dirname(__file__), os.pardir,
-                             "presets", "camera_presets.json")
 
 
 def load_presets(path: str | None = None) -> dict[str, dict[str, Any]]:
-    with open(path or os.path.abspath(_DEFAULT_PATH), encoding="utf-8") as f:
-        data = json.load(f)
+    if path is not None:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    else:
+        ref = resources.files("mvstudio") / "presets_data" / "camera_presets.json"
+        data = json.loads(ref.read_text(encoding="utf-8"))
     presets = {p["id"]: p for p in data["presets"]}
     if not presets:
         raise ValueError("no presets defined")

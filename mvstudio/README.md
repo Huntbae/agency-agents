@@ -19,12 +19,22 @@
 결정적 엔진**입니다. 감독(모델)을 바꿔도 렌더 품질이 흔들리지 않고, 이후 GUI/MCP 서버가
 같은 JSON 위에 그대로 얹힙니다.
 
-## 설치
+## 설치 및 검증 (Mac 기준)
 
 ```bash
+git clone https://github.com/Huntbae/agency-agents.git
+cd agency-agents && git checkout claude/music-video-local-design-41d53y
 cd mvstudio
-pip install -e ".[dev]"        # librosa, soundfile, numpy, pillow (+ 개발용 ffmpeg, pytest)
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev,mcp]"
+mvstudio doctor                # 환경 점검 + 엔드투엔드 자가 테스트
 ```
+
+`mvstudio doctor`가 의존성, FFmpeg/인코더, RAM/디스크 티어, Ollama 유무를 점검한 뒤
+합성 데모 곡으로 실제 렌더까지 수행해 `RESULT: OK`를 출력하면 설치 검증 완료입니다.
+Apple Silicon Mac에서는 인코더가 `h264_videotoolbox`(하드웨어, LGPL-안전)로 잡혀야 정상이며,
+`libx264` 경고가 뜨면 GPL 빌드 FFmpeg(예: Homebrew)를 쓰고 있다는 뜻입니다 —
+개인 사용은 문제없고, 상용 배포 시에만 LGPL 빌드로 교체하면 됩니다.
 
 FFmpeg는 시스템에 설치된 것을 우선 사용합니다 (`MVSTUDIO_FFMPEG` 환경변수로 지정 가능).
 없으면 개발 편의를 위해 `imageio-ffmpeg` 동봉 바이너리로 폴백합니다.
@@ -77,7 +87,7 @@ Claude Desktop / Claude Code 설정:
 
 ## 카메라 프리셋
 
-`presets/camera_presets.json`에 데이터로 정의됩니다 (T1 = FFmpeg zoompan 기반 2D 모션 12종:
+`mvstudio/presets_data/camera_presets.json`에 데이터로 정의됩니다(패키지 데이터로 배포) (T1 = FFmpeg zoompan 기반 2D 모션 12종:
 ken burns, zoom, rapid zoom, pan, tilt, push 등). 각 프리셋은 에너지 친화 범위(`energy`)를
 선언하고, 감독이 구간 에너지에 맞는 프리셋을 고릅니다. 로드맵의 T2(깊이 패럴랙스 —
 Depth Anything V2 **Small**), T3(생성형 — Wan2.2 Fun Camera Control)는 같은 레코드에

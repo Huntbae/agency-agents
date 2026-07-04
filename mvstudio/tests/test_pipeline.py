@@ -20,14 +20,10 @@ from mvstudio.schema import StoryboardError, validate_storyboard
 
 @pytest.fixture(scope="session")
 def assets(tmp_path_factory):
+    from mvstudio.demo import make_images, make_song
     root = tmp_path_factory.mktemp("assets")
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))), "examples"))
-    import make_demo_assets as demo
-    song = str(root / "demo.wav")
-    images = str(root / "images")
-    demo.make_song(song)
-    demo.make_images(images)
+    song = make_song(str(root / "demo.wav"))
+    images = make_images(str(root / "images"))
     return song, images
 
 
