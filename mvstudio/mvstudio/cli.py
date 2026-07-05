@@ -183,6 +183,28 @@ def _dispatch(argv: list[str] | None = None) -> int:
                                     "full demo video in one go")
     p.add_argument("-o", "--outdir", default="mvstudio-demo")
 
+    p = sub.add_parser("place-clip",
+                       help="composite a video clip (e.g. lip-synced portrait) "
+                            "over one section of a storyboard")
+    p.add_argument("storyboard")
+    p.add_argument("video")
+    p.add_argument("--section", type=int, default=None,
+                   help="section index (see the storyboard's sections)")
+    p.add_argument("--label", default=None,
+                   help="or first section with this label (default: high)")
+    p.add_argument("--video-offset", type=float, default=0.0,
+                   help="seconds to skip from the clip start")
+    p.add_argument("-o", "--output", default=None,
+                   help="default: overwrite the storyboard in place")
+
+    p = sub.add_parser("section-audio",
+                       help="export one section's audio (feed it to a "
+                            "lip-sync tool so the mouth matches the song)")
+    p.add_argument("song")
+    p.add_argument("storyboard")
+    p.add_argument("--section", type=int, required=True)
+    p.add_argument("-o", "--output", default="section.wav")
+
     p = sub.add_parser("transcribe",
                        help="extract lyrics to .lrc via whisper (pip install 'mvstudio[lyrics]')")
     p.add_argument("song")
@@ -216,6 +238,34 @@ def _dispatch(argv: list[str] | None = None) -> int:
         render(sb, presets, out)
         print(f"[mvstudio] wrote {out} ({len(sb['cuts'])} cuts, "
               f"{analysis['duration']:.0f}s)")
+        return 0
+
+    if args.cmd == "place-clip":
+        from .clips import place_clip
+        presets = load_presets()
+        sb = load_storyboard(args.storyboard, known_presets=set(presets))
+        if not os.path.isfile(args.video):
+            raise FileNotFoundError(f"video not found: {args.video}")
+        sb = place_clip(sb, os.path.abspath(args.video), section=args.section,
+                        label=args.label, video_offset=args.video_offset,
+                        known_presets=set(presets))
+        out = args.output or args.storyboard
+        save_storyboard(sb, out)
+        clip_cut = next(c for c in sb["cuts"] if c.get("video"))
+        print(f"[mvstudio] clip placed at {clip_cut['start']:.1f}-"
+              f"{clip_cut['end']:.1f}s -> {out}")
+        return 0
+
+    if args.cmd == "section-audio":
+        from .clips import export_section_audio
+        presets = load_presets()
+        sb = load_storyboard(args.storyboard, known_presets=set(presets))
+        if not os.path.isfile(args.song):
+            raise FileNotFoundError(f"song file not found: {args.song}")
+        out = export_section_audio(args.song, sb, args.section, args.output)
+        s = sb["sections"][args.section]
+        print(f"[mvstudio] section {args.section} ({s['start']:.1f}-"
+              f"{s['end']:.1f}s, {s.get('label')}) audio -> {out}")
         return 0
 
     if args.cmd == "transcribe":

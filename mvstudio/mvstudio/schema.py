@@ -81,11 +81,21 @@ def validate_storyboard(sb: dict[str, Any], known_presets: set[str] | None = Non
                  f"cuts[{i}] shorter than {MIN_CUT_SECONDS}s: {start}..{end}")
         _require(abs(start - prev_end) <= TIME_EPS,
                  f"cuts[{i}] not contiguous: starts at {start}, previous ended {prev_end}")
-        _require(isinstance(cut.get("image"), str) and cut["image"],
-                 f"cuts[{i}].image is required")
+        has_image = isinstance(cut.get("image"), str) and cut["image"]
+        has_video = isinstance(cut.get("video"), str) and cut["video"]
+        _require(has_image or has_video,
+                 f"cuts[{i}] needs an image or a video source")
         if check_files:
-            _require(os.path.isfile(cut["image"]),
-                     f"cuts[{i}] image not found: {cut['image']}")
+            if has_video:
+                _require(os.path.isfile(cut["video"]),
+                         f"cuts[{i}] video not found: {cut['video']}")
+            elif has_image:
+                _require(os.path.isfile(cut["image"]),
+                         f"cuts[{i}] image not found: {cut['image']}")
+        if "video_offset" in cut:
+            _require(isinstance(cut["video_offset"], (int, float))
+                     and cut["video_offset"] >= 0,
+                     f"cuts[{i}].video_offset must be non-negative")
         preset = cut.get("preset")
         _require(isinstance(preset, str) and preset, f"cuts[{i}].preset is required")
         if known_presets is not None:

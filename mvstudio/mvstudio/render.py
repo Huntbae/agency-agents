@@ -57,6 +57,17 @@ def pick_encoder(ffmpeg: str) -> tuple[str, list[str]]:
     return "mpeg4", ["-q:v", "4"]
 
 
+def media_duration(path: str, ffmpeg: str | None = None) -> float | None:
+    """Duration in seconds via ffmpeg banner parse (no ffprobe needed)."""
+    import re
+    probe = subprocess.run([ffmpeg or find_ffmpeg(), "-hide_banner", "-i", path],
+                           capture_output=True, text=True).stderr
+    m = re.search(r"Duration: (\d+):(\d+):(\d+\.\d+)", probe)
+    if not m:
+        return None
+    return int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
+
+
 def _run(cmd: list[str]) -> None:
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -111,7 +122,22 @@ def render(sb: dict[str, Any], presets: dict[str, dict[str, Any]],
         for i, cut in enumerate(cuts):
             dur = cut["end"] - cut["start"]
             frames = max(int(round(dur * fps)), 1)
-            vf = _zoompan_filter(presets[cut["preset"]], frames, width, height, fps)
+            if cut.get("video"):
+                # video-source cut (e.g. a lip-synced clip): trim from
+                # video_offset, cover-crop, extend by freezing the last
+                # frame if the clip runs out (tpad clone)
+                offset = float(cut.get("video_offset", 0) or 0)
+                source_args = ["-ss", f"{offset:.3f}", "-i", cut["video"]]
+                vf = (f"fps={fps},"
+                      f"scale={width}:{height}:force_original_aspect_ratio=increase,"
+                      f"crop={width}:{height},tpad=stop=-1:stop_mode=clone,"
+                      f"format=yuv420p")
+                label = "video"
+            else:
+                source_args = ["-i", cut["image"]]
+                vf = _zoompan_filter(presets[cut["preset"]], frames, width,
+                                     height, fps)
+                label = cut["preset"]
             grade = grade_table.get(cut.get("grade", ""), {})
             if grade:
                 vf += f",{_eq_filter(grade)}"
@@ -123,11 +149,10 @@ def render(sb: dict[str, Any], presets: dict[str, dict[str, Any]],
                 vf += f",fade=t=out:st={dur - fade_out:.3f}:d={fade_out:.3f}"
             clip = os.path.join(tmp, f"cut_{i:04d}.mp4")
             _run([ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                  "-i", cut["image"], "-vf", vf, "-frames:v", str(frames),
+                  *source_args, "-vf", vf, "-frames:v", str(frames),
                   "-c:v", encoder, *enc_args, "-an", clip])
             clip_paths.append(clip)
-            _log(f"[mvstudio] cut {i + 1}/{len(cuts)} "
-                 f"({cut['preset']}, {dur:.2f}s)")
+            _log(f"[mvstudio] cut {i + 1}/{len(cuts)} ({label}, {dur:.2f}s)")
 
         concat_list = os.path.join(tmp, "concat.txt")
         with open(concat_list, "w", encoding="utf-8") as f:

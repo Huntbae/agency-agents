@@ -92,6 +92,7 @@ RAM 폴백 체인을 선언한다.
 3. **Phase 2a (완료)**: 리릭 비디오 모드 — LRC 파싱 + Pillow→overlay 자막 번인(어떤 FFmpeg 빌드든 동작, 한글 폰트 자동 감지), `mvstudio transcribe`(faster-whisper, 선택 설치; 모델 호출부는 Mac에서 검증 필요), 구간별 컬러 그레이딩(데이터 정의) + 구간 경계 딥 트랜지션
 4. **Phase 2b-1 (완료)**: 의미 매칭 — Ollama 비전 모델(Qwen3-VL)이 사진 내용을 캡션/태그로 파악하고, 텍스트 모델이 가사·구간 에너지와 대조해 무관한 사진을 제외하고 구간별 풀을 배정. sanitizer가 모델 오출력(전체 제외, 잘못된 인덱스)을 방어. 미가용 시 energy 매칭 폴백
 5. **Phase 2b-2 (완료)**: 가사→이미지 생성 — 구간·가사에서 장면 프롬프트 생성(LLM 또는 오프라인 템플릿 폴백) → mflux/FLUX.2-klein-4B로 구간별 이미지 생성 → 정확한 구간 풀로 편집. `--visuals generate`. mflux 호출부는 얇은 래퍼(맥 실기 검증 필요)
-6. **Phase 1**: Tauri 타임라인 UI + 모델 매니저(RAM 게이팅)
+6. **Phase 2c (완료)**: 립싱크 합성 — 스토리보드 컷의 비디오 소스 지원(`video`/`video_offset`, tpad 연장), `place-clip`(구간에 연속 합성)·`section-audio` CLI, **comfyui-mvstudio 노드 팩 5종**(경로 기반이라 어떤 립싱크 노드와도 조합; LatentSync=Apache/Sonic=비상용/SadTalker=Apache 가이드 포함). 립싱크 생성 모델 자체는 외부 도구(ComfyUI)에 위임 — 합성 경로는 e2e 테스트 완료
+7. **Phase 1**: Tauri 타임라인 UI + 모델 매니저(RAM 게이팅)
 5. **Phase 3**: Wan2.2 클립 생성(백그라운드 큐+저해상도 프리뷰), T2/T3 프리셋
 6. **Phase 4**: SwiftUI+AVFoundation 네이티브 앱, App Store 배포 (FFmpeg LGPL 완전 해소)

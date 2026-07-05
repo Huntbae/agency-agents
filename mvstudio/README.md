@@ -115,6 +115,23 @@ Ollama가 실행 중이면 자동으로 의미 매칭이 켜지고(`--match auto
 어떤 사진이 제외됐는지 출력합니다. 강제하려면 `--match semantic`,
 끄려면 `--match energy`.
 
+### 립싱크 — 업로드한 사진이 노래를 부르게 (ComfyUI 연동)
+
+립싱크 생성(사진→말하는 얼굴)은 ComfyUI의 검증된 립싱크 노드(LatentSync/Sonic/
+SadTalker)에 맡기고, mvstudio가 **그 클립을 곡의 정확한 구간에 연속 합성**합니다.
+설치·워크플로·맥 호환 가이드: [comfyui-mvstudio/README.md](comfyui-mvstudio/README.md)
+
+ComfyUI 없이 CLI만으로도 (립싱크 클립을 어떤 도구로든 만들었다면):
+
+```bash
+mvstudio section-audio song.mp3 sb.json --section 2 -o chorus.wav   # 립싱크 도구에 먹일 구간 오디오
+mvstudio place-clip sb.json talking.mp4 --section 2                  # 클립을 그 구간에 연속 합성
+mvstudio render sb.json -o final.mp4
+```
+
+스토리보드의 컷은 이제 이미지뿐 아니라 **비디오 소스**(`"video"`, `"video_offset"`)를
+지원합니다 — 립싱크 클립, Wan2.2 모션 클립 등 무엇이든 타임라인에 들어갑니다.
+
 ### 컬러 그레이딩·트랜지션 (자동)
 
 구간 에너지에 따라 컬러 그레이드가 자동 적용됩니다(조용한 구간 `cool_muted` →
