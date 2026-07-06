@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mvstudio"
+version = "0.1.0"
+description = "Local-first, beat-synced music video engine (Phase 0 MVP): audio analysis -> storyboard JSON -> deterministic FFmpeg render"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "librosa>=0.10",
+    "soundfile>=0.12",
+    "numpy>=1.24",
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+# Bundled FFmpeg for development convenience only.
+# For commercial distribution, ship an LGPL FFmpeg build (no --enable-gpl,
+# no libx264/libx265) and prefer h264_videotoolbox on macOS. See README.
+dev = ["imageio-ffmpeg>=0.4", "pytest>=7"]
+# MCP server (Phase 0.5): expose the engine as agent tools (MIT SDK).
+mcp = ["mcp>=1.0"]
+# Lyric transcription (Phase 2): faster-whisper (MIT) + Whisper weights (MIT).
+lyrics = ["faster-whisper>=1.0"]
+# iPhone HEIC photo input. pillow-heif is BSD-3 but bundles libheif (LGPL-3)
+# dylibs — fine for personal use; review before commercial bundling.
+heic = ["pillow-heif>=0.16"]
+# Lyrics-to-image generation: mflux (MIT) + FLUX.2-klein-4B (Apache-2.0).
+# Apple Silicon only.
+gen = ["mflux>=0.14"]
+
+[project.scripts]
+mvstudio = "mvstudio.cli:main"
+mvstudio-mcp = "mvstudio.mcp_server:main"
+
+[tool.setuptools.packages.find]
+include = ["mvstudio*"]
+
+[tool.setuptools.package-data]
+mvstudio = ["presets_data/*.json"]

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "comment": "Per-section color grades applied by the renderer via FFmpeg's eq filter. The director maps section energy labels to grade ids (low->cool_muted, mid->neutral, high->punchy). Data, not code: add moods here without touching the engine.",
+  "grades": {
+    "none": {},
+    "cool_muted": { "contrast": 1.0,  "brightness": -0.02, "saturation": 0.82, "gamma": 1.02 },
+    "neutral":    { "contrast": 1.03, "brightness": 0.0,   "saturation": 1.0,  "gamma": 1.0 },
+    "punchy":     { "contrast": 1.12, "brightness": 0.01,  "saturation": 1.22, "gamma": 0.98 }
+  },
+  "by_label": { "low": "cool_muted", "mid": "neutral", "high": "punchy" }
+}
