@@ -1,6 +1,8 @@
 # Open Higgsfield AI 분석 및 활용 가이드
 
 > 분석 대상: <https://github.com/sunnychase/open-higgsfield-ai> (원본: [Anil-matcha/Open-Higgsfield-AI](https://github.com/Anil-matcha/Open-Higgsfield-AI), MIT 라이선스)
+>
+> ⚠️ **후속작 있음**: 같은 개발자가 만든 [Open Generative AI](./open-generative-ai.md)가 상위 호환 버전입니다. 모델 200종+, 이미지-투-이미지·이미지-투-비디오·립싱크·로컬 추론을 지원하며, 이 문서 7장에서 지적한 한계(참조 이미지 다중 입력 부재, 폴링 2분 타임아웃)가 해결되어 있습니다. 실무 도입은 그쪽을 먼저 검토하세요. 이 문서는 구조가 단순해 Muapi 연동 패턴을 이해하는 입문 자료로 유효합니다.
 
 Higgsfield AI의 무료 오픈소스 대안을 표방하는 웹 기반 AI 이미지·영상 생성 스튜디오입니다. 구독료 없이 [Muapi.ai](https://muapi.ai) API 키 하나로 이미지 모델 약 50종, 영상 모델 약 40종을 사용할 수 있습니다. 이 문서는 프로젝트 구조를 분석하고, 이 저장소(agency-agents)의 기존 Higgsfield MCP 기반 스킬(ai-ad, ai-influencer, asmr-mukbang)의 **대안/백업 파이프라인**으로 바로 활용할 수 있도록 정리한 가이드입니다.
 
