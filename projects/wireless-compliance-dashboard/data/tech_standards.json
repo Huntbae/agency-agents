@@ -1,0 +1,454 @@
+{
+  "$schema": "./schema.md#tech_standards",
+  "version": "1.0.0",
+  "generatedAt": "2026-09-05",
+  "legalBasis": {
+    "parentAct": {
+      "name": "전파법",
+      "lawId": "001732",
+      "mst": "276245",
+      "promulgated": "2025-10-01",
+      "effective": "2026-01-02"
+    },
+    "technicalRule": {
+      "name": "무선설비규칙",
+      "lawId": "012646",
+      "mst": "239167",
+      "promulgated": "2022-01-04",
+      "effective": "2022-01-04",
+      "issuer": "과학기술정보통신부령"
+    },
+    "retrievedVia": "korean-law MCP (법제처 국가법령정보 연계)",
+    "retrievedAt": "2026-09-05"
+  },
+  "carrierTypes": [
+    {
+      "code": "MNO",
+      "label": "이동통신사업자",
+      "shortLabel": "이동통신",
+      "definition": "「전파법」 제11조에 따라 주파수를 할당받아 이동통신 역무를 제공하는 기간통신사업자",
+      "examples": ["SK텔레콤", "KT", "LG유플러스"],
+      "openingRoute": {
+        "route": "신고",
+        "basis": "전파법 제19조의2제1항제3호",
+        "note": "주파수할당을 받은 자가 전기통신역무 제공을 위해 개설하는 무선국(기지국)은 허가가 아닌 신고 대상"
+      },
+      "subscriberStationRoute": {
+        "route": "허가의제",
+        "basis": "전파법 제19조제2항",
+        "note": "가입자 단말 무선국은 이용계약 체결 시 허가받은 것으로 의제되며, 변경허가·검사·전파사용료 규정이 적용되지 않음"
+      },
+      "inspection": {
+        "준공검사": "전파법 제24조제1항제2호",
+        "정기검사": "전파법 제24조제4항제2호",
+        "표본검사": "전파법 제24조제1항 단서 — 제19조의2제1항제3호 무선국 중 대통령령으로 정하는 경우"
+      },
+      "spectrumFee": {
+        "status": "감면대상",
+        "basis": "전파법 제67조제1항제5호",
+        "assessment": "가입자 수 기준 산정 가능",
+        "assessmentBasis": "전파법 제68조제1항 단서",
+        "note": "가입자 단말(제19조제2항 무선국)은 제67조제1항제3호에 따라 전부 면제"
+      }
+    },
+    {
+      "code": "MVNO",
+      "label": "알뜰폰사업자",
+      "shortLabel": "알뜰폰",
+      "definition": "주파수를 직접 할당받지 않고 MNO 설비를 도매로 임차하여 역무를 제공하는 사업자",
+      "examples": ["기간통신사업 등록 MVNO"],
+      "openingRoute": {
+        "route": "해당없음",
+        "basis": "-",
+        "note": "자체 무선국(기지국)을 개설하지 않으므로 무선국 개설 주체가 아님. 기술기준 준수 책임은 설비를 보유한 MNO에 귀속"
+      },
+      "subscriberStationRoute": {
+        "route": "허가의제",
+        "basis": "전파법 제19조제2항",
+        "note": "가입자 단말은 이용계약 체결로 허가 의제"
+      },
+      "inspection": { "준공검사": "해당없음", "정기검사": "해당없음", "표본검사": "해당없음" },
+      "spectrumFee": {
+        "status": "해당없음(설비보유 MNO에 귀속)",
+        "basis": "-",
+        "assessment": "-",
+        "assessmentBasis": "-",
+        "note": "무선국 시설자가 아니므로 전파사용료 부과 대상 아님"
+      }
+    },
+    {
+      "code": "PRIVATE5G",
+      "label": "5G 특화망 사업자",
+      "shortLabel": "이음5G",
+      "definition": "제한된 구역에서 자가 또는 기업용 5G망을 구축·운용하는 사업자",
+      "examples": ["이음5G 주파수 지정·할당 사업자"],
+      "openingRoute": {
+        "route": "신고 또는 허가",
+        "basis": "전파법 제19조의2제1항제3호 / 제19조제1항",
+        "note": "주파수할당 경로에 따라 신고 또는 허가로 갈림"
+      },
+      "subscriberStationRoute": {
+        "route": "조건부 허가의제",
+        "basis": "전파법 제19조제2항",
+        "note": "전기통신역무 제공 형태일 때 단말 의제 적용"
+      },
+      "inspection": {
+        "준공검사": "전파법 제24조제1항",
+        "정기검사": "전파법 제24조제4항",
+        "표본검사": "조건부"
+      },
+      "spectrumFee": {
+        "status": "부과대상(감면 검토)",
+        "basis": "전파법 제67조제1항",
+        "assessment": "주파수 대역·전파의 폭·안테나공급전력 기준",
+        "assessmentBasis": "전파법 제68조제1항 본문",
+        "note": "가입자 기준 산정 특례는 제11·12조 할당 주파수로 역무를 제공하는 기간통신사업자에 한정"
+      }
+    },
+    {
+      "code": "PS_NET",
+      "label": "공공안전·전용망 운영기관",
+      "shortLabel": "공공안전망",
+      "definition": "재난안전통신망(PS-LTE), 철도통합망(LTE-R), 해상망(LTE-M) 등 공공 목적 전용망 운영 주체",
+      "examples": ["국가·지방자치단체 운영망"],
+      "openingRoute": {
+        "route": "허가",
+        "basis": "전파법 제19조제1항",
+        "note": "주파수 사용승인 경로(제19조제5항) 적용 가능"
+      },
+      "subscriberStationRoute": { "route": "허가", "basis": "전파법 제19조제1항", "note": "-" },
+      "inspection": {
+        "준공검사": "전파법 제24조제1항제1호",
+        "정기검사": "전파법 제24조제4항제1호",
+        "표본검사": "해당없음"
+      },
+      "spectrumFee": {
+        "status": "전부 면제",
+        "basis": "전파법 제67조제1항제1호",
+        "assessment": "-",
+        "assessmentBasis": "-",
+        "note": "국가·지방자치단체가 개설한 무선국"
+      }
+    },
+    {
+      "code": "BC_TERR",
+      "label": "지상파방송사업자",
+      "shortLabel": "지상파방송",
+      "definition": "지상파 TV·라디오 방송국을 개설·운용하는 사업자",
+      "examples": ["지상파방송사업자 방송국"],
+      "openingRoute": { "route": "허가", "basis": "전파법 제19조제1항", "note": "-" },
+      "subscriberStationRoute": { "route": "해당없음", "basis": "-", "note": "수신전용 설비는 기술기준 적용 제외(전파법 제45조 괄호)" },
+      "inspection": {
+        "준공검사": "전파법 제24조제1항제1호",
+        "정기검사": "전파법 제24조제4항제1호",
+        "표본검사": "해당없음"
+      },
+      "spectrumFee": {
+        "status": "전부 면제(분담금 납부 시)",
+        "basis": "전파법 제67조제1항제2호",
+        "assessment": "-",
+        "assessmentBasis": "-",
+        "note": "「방송통신발전 기본법」 제25조제2항에 따라 분담금을 내는 지상파방송사업자의 방송국"
+      }
+    },
+    {
+      "code": "BC_SAT_CATV",
+      "label": "위성방송·종합유선방송사업자",
+      "shortLabel": "위성/유선방송",
+      "definition": "위성방송 또는 종합유선방송 역무를 제공하는 사업자",
+      "examples": ["위성방송사업자", "종합유선방송사업자"],
+      "openingRoute": { "route": "허가", "basis": "전파법 제19조제1항", "note": "-" },
+      "subscriberStationRoute": { "route": "해당없음", "basis": "-", "note": "-" },
+      "inspection": {
+        "준공검사": "전파법 제24조제1항제1호",
+        "정기검사": "전파법 제24조제4항제1호",
+        "표본검사": "해당없음"
+      },
+      "spectrumFee": {
+        "status": "전부·일부 감면",
+        "basis": "전파법 제67조제1항제4호",
+        "assessment": "주파수 대역·전파의 폭·안테나공급전력 기준",
+        "assessmentBasis": "전파법 제68조제1항 본문",
+        "note": "「방송통신발전 기본법」 제25조제3항 분담금 납부 사업자"
+      }
+    },
+    {
+      "code": "SAT_FSS",
+      "label": "위성통신사업자",
+      "shortLabel": "위성통신",
+      "definition": "우주국·지구국을 개설하여 위성통신 역무를 제공하는 사업자",
+      "examples": ["고정위성업무 지구국 운용사업자"],
+      "openingRoute": { "route": "허가", "basis": "전파법 제19조제1항", "note": "-" },
+      "subscriberStationRoute": { "route": "허가 또는 신고", "basis": "전파법 제19조제1항 / 제19조의2", "note": "단말형 지구국은 유형별로 갈림" },
+      "inspection": {
+        "준공검사": "전파법 제24조제1항제1호",
+        "정기검사": "전파법 제24조제4항제1호",
+        "표본검사": "해당없음"
+      },
+      "spectrumFee": {
+        "status": "부과대상",
+        "basis": "전파법 제67조제1항",
+        "assessment": "주파수 대역·전파의 폭·안테나공급전력 기준",
+        "assessmentBasis": "전파법 제68조제1항 본문",
+        "note": "-"
+      }
+    },
+    {
+      "code": "GENERAL",
+      "label": "간이무선·생활무선·아마추어",
+      "shortLabel": "간이/생활무선",
+      "definition": "간이무선국, 생활무선국, 아마추어국 등 일반 이용자 개설 무선국",
+      "examples": ["간이무선국", "생활무선국", "아마추어국"],
+      "openingRoute": {
+        "route": "허가 또는 신고(미약전파는 신고 면제)",
+        "basis": "전파법 제19조제1항 / 제19조의2제1항·제2항",
+        "note": "발사 전파가 미약한 무선국은 신고 없이 개설 가능(제19조의2제2항)"
+      },
+      "subscriberStationRoute": { "route": "해당없음", "basis": "-", "note": "-" },
+      "inspection": {
+        "준공검사": "전파법 제24조제1항(허가 무선국)",
+        "정기검사": "전파법 제24조제4항(허가 무선국)",
+        "표본검사": "해당없음"
+      },
+      "spectrumFee": {
+        "status": "부과대상(공공복리 목적 감면 가능)",
+        "basis": "전파법 제67조제1항 / 같은 항 제6호",
+        "assessment": "주파수 대역·전파의 폭·안테나공급전력 기준",
+        "assessmentBasis": "전파법 제68조제1항 본문",
+        "note": "-"
+      }
+    }
+  ],
+  "standards": [
+    {
+      "id": "TS-01",
+      "category": "전파의 질",
+      "name": "주파수 허용편차",
+      "definition": "송신설비에서 발사되는 전파의 중심주파수가 지정주파수로부터 벗어날 수 있는 허용 한계",
+      "legalRef": "무선설비규칙 제5조",
+      "annex": "별표 1",
+      "measure": "지정주파수 대비 편차 (10^-6 또는 Hz)",
+      "delegation": "무선설비의 용도에 따라 과학기술정보통신부장관이 별도 고시 가능(제5조제1항 단서). 적용이 어려운 경우 ITU 기준 적용(제5조제2항)",
+      "violationImpact": "인접 채널 침범·혼신 유발, 검사 부적합 판정",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-02",
+      "category": "전파의 질",
+      "name": "점유주파수대역폭의 허용치",
+      "definition": "발사 전파의 전력 대부분이 포함되는 주파수 대역폭의 상한",
+      "legalRef": "무선설비규칙 제6조",
+      "annex": "별표 2",
+      "measure": "대역폭 (kHz/MHz)",
+      "delegation": "용도별 별도 고시 가능(제6조제1항 단서). 적용이 어려운 경우 ITU 필요주파수대역폭 적용(제6조제2항)",
+      "violationImpact": "할당 대역 초과 점유로 인접 사업자 대역 간섭",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-03",
+      "category": "불요발사",
+      "name": "협대역·광대역 시스템의 스퓨리어스 영역 경계기준",
+      "definition": "대역외 영역과 스퓨리어스 영역을 구분하는 주파수 경계의 산정 기준",
+      "legalRef": "무선설비규칙 제7조",
+      "annex": "별표 3",
+      "measure": "경계 오프셋 주파수",
+      "delegation": "별표 3에 직접 규정(단서 없음)",
+      "violationImpact": "불요발사 측정 구간 오적용으로 적합성 판정 왜곡",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-04",
+      "category": "불요발사",
+      "name": "스퓨리어스 영역 불요발사의 허용치",
+      "definition": "스퓨리어스 영역에서 방사되는 불요발사 전력의 상한",
+      "legalRef": "무선설비규칙 제8조",
+      "annex": "별표 4",
+      "measure": "절대전력(dBm) 또는 반송파 대비 감쇠량(dBc)",
+      "delegation": "용도별 별도 고시 가능(제8조제1항 단서). 적용이 어려운 경우 ITU 기준 적용(제8조제2항)",
+      "violationImpact": "타 업무 대역 혼신·전파감시 적발의 대표 사유",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-05",
+      "category": "공중선전력",
+      "name": "전파형식별 안테나공급전력 표시 및 환산비",
+      "definition": "전파형식에 따른 안테나공급전력의 표시 방법과 형식 간 환산 비율",
+      "legalRef": "무선설비규칙 제9조제1항",
+      "annex": "별표 5",
+      "measure": "환산비(무차원)",
+      "delegation": "별표 5에 규정",
+      "violationImpact": "전력 신고값과 실측값 불일치, 전파사용료 산정 기초 오류",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-06",
+      "category": "공중선전력",
+      "name": "안테나공급전력 허용편차",
+      "definition": "송신설비의 실제 안테나공급전력이 지정전력에서 벗어날 수 있는 허용 범위",
+      "legalRef": "무선설비규칙 제9조제1항",
+      "annex": "별표 6",
+      "measure": "지정전력 대비 상·하한 편차(%)",
+      "delegation": "용도별 별도 고시 가능(제9조제1항 단서)",
+      "violationImpact": "과출력 시 커버리지 침범·혼신, 과소출력 시 서비스 품질 저하",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-07",
+      "category": "공중선전력",
+      "name": "전력 표시방식(안테나공급전력 원칙, 규격전력 예외)",
+      "definition": "송신설비 전력은 안테나공급전력으로 표시하되, 일정 요건의 설비는 규격전력으로 표시",
+      "legalRef": "무선설비규칙 제9조제2항",
+      "annex": "-",
+      "measure": "표시 구분(안테나공급전력 / 규격전력)",
+      "delegation": "규격전력 예외 대상: 500MHz 이하·정격출력 1W 이하 설비, 생존정 비상용 설비, 아마추어국·실험국 송신설비 등",
+      "violationImpact": "표시방식 오적용 시 허가·검사 기재사항 불일치",
+      "applicability": {
+        "MNO": "필수(안테나공급전력)", "MVNO": "해당없음", "PRIVATE5G": "필수(안테나공급전력)", "PS_NET": "필수(안테나공급전력)",
+        "BC_TERR": "필수(안테나공급전력)", "BC_SAT_CATV": "필수(안테나공급전력)", "SAT_FSS": "필수(안테나공급전력)", "GENERAL": "조건부(규격전력 예외 적용)"
+      }
+    },
+    {
+      "id": "TS-08",
+      "category": "공중선전력",
+      "name": "등가등방복사전력(EIRP)·실효복사전력(ERP) 병기",
+      "definition": "전파이용질서 유지·보호를 위해 필요 시 EIRP 또는 ERP를 함께 표시",
+      "legalRef": "무선설비규칙 제9조제3항",
+      "annex": "-",
+      "measure": "EIRP / ERP (dBm, W)",
+      "delegation": "과학기술정보통신부장관이 필요하다고 인정하는 경우",
+      "violationImpact": "고출력 기지국 인체보호·간섭 검토 기초자료 누락",
+      "applicability": {
+        "MNO": "조건부", "MVNO": "해당없음", "PRIVATE5G": "조건부", "PS_NET": "조건부",
+        "BC_TERR": "조건부", "BC_SAT_CATV": "조건부", "SAT_FSS": "조건부", "GENERAL": "조건부"
+      }
+    },
+    {
+      "id": "TS-09",
+      "category": "변조특성",
+      "name": "변조도 및 최대주파수편이 제한",
+      "definition": "진폭변조 시 변조도 100% 초과 금지, 주파수변조 시 최대주파수편이 범위 초과 금지",
+      "legalRef": "무선설비규칙 제10조제1항",
+      "annex": "-",
+      "measure": "변조도(%), 최대주파수편이(kHz)",
+      "delegation": "규칙 본문에 직접 규정",
+      "violationImpact": "과변조에 따른 대역폭 확산 및 인접 채널 간섭",
+      "applicability": {
+        "MNO": "조건부", "MVNO": "해당없음", "PRIVATE5G": "조건부", "PS_NET": "조건부",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "조건부", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-10",
+      "category": "변조특성",
+      "name": "최고 통신속도·최고 변조주파수 안정 동작",
+      "definition": "무선설비는 최고 통신속도 또는 최고 변조주파수에서 안정적으로 작동하여야 함",
+      "legalRef": "무선설비규칙 제10조제2항",
+      "annex": "-",
+      "measure": "정성 요건(안정 동작 여부)",
+      "delegation": "규칙 본문에 직접 규정",
+      "violationImpact": "고부하 조건에서 규격 이탈, 검사 부적합",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-11",
+      "category": "인체보호",
+      "name": "전자파 인체보호기준 준수 및 안전시설 설치",
+      "definition": "무선설비등에서 방출되는 전자파 강도가 인체보호기준을 초과하지 않도록 하고, 초과 장소에는 안전시설 설치",
+      "legalRef": "전파법 제47조의2제2항",
+      "annex": "과학기술정보통신부 고시(인체보호기준·등급기준·측정기준)",
+      "measure": "전자파 강도(V/m, A/m, W/m²), 전자파흡수율(SAR)",
+      "delegation": "제47조의2제1항 각 호 사항을 장관이 고시",
+      "violationImpact": "안전시설 설치·운용제한·운용정지 명령 대상(제47조의2제6항)",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-12",
+      "category": "인체보호",
+      "name": "전자파 강도 측정·보고 의무",
+      "definition": "안테나공급전력·설치장소가 대통령령 기준에 해당하는 무선국 시설자의 전자파 강도 측정 및 보고",
+      "legalRef": "전파법 제47조의2제3항",
+      "annex": "-",
+      "measure": "측정 결과 보고서",
+      "delegation": "보고 시기·방법은 대통령령. 제24조 검사 시 측정 요청으로 보고의무 이행 간주 가능(제47조의2제4항)",
+      "violationImpact": "미보고·거짓보고 시 장관의 측정·조사 및 조치명령 대상",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "조건부", "PS_NET": "조건부",
+        "BC_TERR": "필수", "BC_SAT_CATV": "조건부", "SAT_FSS": "조건부", "GENERAL": "조건부"
+      }
+    },
+    {
+      "id": "TS-13",
+      "category": "인체보호",
+      "name": "전자파 등급 표시",
+      "definition": "무선국 시설자·제작자·수입자의 전자파 등급 표시 의무",
+      "legalRef": "전파법 제47조의2제8항",
+      "annex": "고시로 정하는 표시대상·표시방법",
+      "measure": "등급 표시(1등급/2등급 등)",
+      "delegation": "제47조의2제1항제2호·제6호 고시",
+      "violationImpact": "표시의무 위반",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-14",
+      "category": "적합성 확인",
+      "name": "기술기준 적합의무(총괄)",
+      "definition": "방송수신 전용을 제외한 모든 무선설비는 주파수 허용편차·안테나공급전력 등 과학기술정보통신부령이 정하는 기술기준에 적합하여야 함",
+      "legalRef": "전파법 제45조",
+      "annex": "무선설비규칙 전반",
+      "measure": "적합/부적합",
+      "delegation": "구체적 기준은 무선설비규칙에 위임",
+      "violationImpact": "전파감시 '기술기준위반' 집계의 근거 조항",
+      "applicability": {
+        "MNO": "필수", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "필수"
+      }
+    },
+    {
+      "id": "TS-15",
+      "category": "적합성 확인",
+      "name": "준공검사·정기검사 수검 의무",
+      "definition": "무선설비 준공 시 준공검사, 이후 5년 범위에서 무선국별로 정한 기간마다 정기검사 수검",
+      "legalRef": "전파법 제24조제1항·제4항",
+      "annex": "-",
+      "measure": "검사 합격/불합격, 재검사 여부",
+      "delegation": "검사 대상·시기·방법·절차는 대통령령. 일부 신고 무선국은 표본검사 가능(제24조제1항 단서)",
+      "violationImpact": "부적합 시 대통령령이 정한 기한까지 재검사(제24조제3항 단서)",
+      "applicability": {
+        "MNO": "필수(표본검사 적용 가능)", "MVNO": "해당없음", "PRIVATE5G": "필수", "PS_NET": "필수",
+        "BC_TERR": "필수", "BC_SAT_CATV": "필수", "SAT_FSS": "필수", "GENERAL": "조건부(허가 무선국)"
+      }
+    }
+  ],
+  "applicabilityLegend": {
+    "필수": "해당 사업자 유형이 직접 준수·입증해야 하는 항목",
+    "조건부": "설비 유형·출력·전파형식 등 조건 충족 시에만 적용",
+    "해당없음": "해당 사업자 유형은 무선국 시설자가 아니거나 항목 성격상 적용 대상이 아님"
+  }
+}

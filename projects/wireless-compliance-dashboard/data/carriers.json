@@ -1,0 +1,17 @@
+{
+  "$schema": "./schema.md#carriers",
+  "version": "1.0.0",
+  "note": "본 마스터는 사업자의 '구조적·법적 속성'만을 담는다. 허가 건수·위반 건수·전파사용료 납부액 등 실적 수치는 이 파일에 두지 않으며, 공표 원자료를 ingest 한 뒤 carrier_metrics.json 에서 관리한다.",
+  "carriers": [
+    { "id": "SKT",  "name": "SK텔레콤",   "type": "MNO",     "role": "주파수할당 기간통신사업자", "ownsRadioStations": true,  "verified": "법적 지위 기준(전파법 제11조 할당 사업자)" },
+    { "id": "KT",   "name": "KT",         "type": "MNO",     "role": "주파수할당 기간통신사업자", "ownsRadioStations": true,  "verified": "법적 지위 기준(전파법 제11조 할당 사업자)" },
+    { "id": "LGU",  "name": "LG유플러스", "type": "MNO",     "role": "주파수할당 기간통신사업자", "ownsRadioStations": true,  "verified": "법적 지위 기준(전파법 제11조 할당 사업자)" },
+    { "id": "MVNO", "name": "알뜰폰(MVNO) 사업자군", "type": "MVNO", "role": "도매제공 기반 재판매사업자", "ownsRadioStations": false, "verified": "설비 미보유 — 무선국 시설자 아님" },
+    { "id": "P5G",  "name": "이음5G(5G 특화망) 사업자군", "type": "PRIVATE5G", "role": "특화망 주파수 지정·할당 사업자", "ownsRadioStations": true, "verified": "-" },
+    { "id": "PSN",  "name": "공공안전·전용망 운영기관군", "type": "PS_NET", "role": "재난안전통신망·철도망·해상망 운영", "ownsRadioStations": true, "verified": "국가·지방자치단체 개설(전파법 제67조제1항제1호)" },
+    { "id": "BCT",  "name": "지상파방송사업자군", "type": "BC_TERR", "role": "지상파 방송국 운용", "ownsRadioStations": true, "verified": "-" },
+    { "id": "BCS",  "name": "위성·종합유선방송사업자군", "type": "BC_SAT_CATV", "role": "위성방송·종합유선방송 역무", "ownsRadioStations": true, "verified": "-" },
+    { "id": "SAT",  "name": "위성통신사업자군", "type": "SAT_FSS", "role": "우주국·지구국 운용", "ownsRadioStations": true, "verified": "-" },
+    { "id": "GEN",  "name": "간이·생활·아마추어 무선국", "type": "GENERAL", "role": "일반 이용자 개설 무선국", "ownsRadioStations": true, "verified": "-" }
+  ]
+}

@@ -1,0 +1,800 @@
+{
+  "$schema": "./schema.md#carrier_metrics",
+  "profile": "official",
+  "synthetic": false,
+  "status": "PENDING_INPUT",
+  "statusReason": "중앙전파관리소 전파관리통계(공공데이터포털 15054180)는 전국 총계만 공표하며 사업자별로 분해되어 있지 않다. 따라서 사업자별 실적 수치는 별도 원자료를 투입하기 전까지 비워 둔다.",
+  "acceptedSources": [
+    "과학기술정보통신부·중앙전파관리소 정보공개청구 회신(사업자별 무선국·검사·위반 내역)",
+    "국회 과학기술정보방송통신위원회 국정감사 요구자료(사업자별 전파사용료 납부액)",
+    "각 사업자 사업보고서·감사보고서상 전파사용료 계상액",
+    "전파법 제19조제3항에 따라 전기통신사업자가 통보한 가입자 수"
+  ],
+  "howToFill": "scripts/ingest_rrb_csv.py 로 국가 총계를 정규화한 뒤, 위 원자료를 carriers[].metrics 에 채우고 각 값에 basis 를 표기한다. 값이 비어 있는 동안 대시보드는 해당 지표를 '미수집'으로 표시한다.",
+  "basisLegend": {
+    "OFFICIAL": "공표·회신된 원자료를 그대로 옮긴 값",
+    "DERIVED": "공표된 총계와 공표된 분모로 산술 도출한 값",
+    "ESTIMATED": "안분 모델로 추정한 값 — 근거 지표와 배분식을 함께 표기해야 함",
+    "PENDING": "아직 채워지지 않음"
+  },
+  "periods": [
+    "2023",
+    "2024",
+    "2025",
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05"
+  ],
+  "metricUnits": {
+    "licensedStations": "국",
+    "newLicenses": "건",
+    "techViolations": "건",
+    "licenseViolations": "건",
+    "spectrumFeeKRW1k": "천원",
+    "inspections": "건"
+  },
+  "carriers": [
+    {
+      "id": "SKT",
+      "label": "SK텔레콤",
+      "type": "MNO",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "KT",
+      "label": "KT",
+      "type": "MNO",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "LGU",
+      "label": "LG유플러스",
+      "type": "MNO",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "MVNO",
+      "label": "알뜰폰(MVNO) 사업자군",
+      "type": "MVNO",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "P5G",
+      "label": "이음5G 사업자군",
+      "type": "PRIVATE5G",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "PSN",
+      "label": "공공안전·전용망 운영기관군",
+      "type": "PS_NET",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "BCT",
+      "label": "지상파방송사업자군",
+      "type": "BC_TERR",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "BCS",
+      "label": "위성·종합유선방송사업자군",
+      "type": "BC_SAT_CATV",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "SAT",
+      "label": "위성통신사업자군",
+      "type": "SAT_FSS",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    },
+    {
+      "id": "GEN",
+      "label": "간이·생활·아마추어 무선국",
+      "type": "GENERAL",
+      "synthetic": false,
+      "metrics": {
+        "licensedStations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "newLicenses": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "techViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "licenseViolations": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "spectrumFeeKRW1k": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        },
+        "inspections": {
+          "2023": null,
+          "2024": null,
+          "2025": null,
+          "2026-01": null,
+          "2026-02": null,
+          "2026-03": null,
+          "2026-04": null,
+          "2026-05": null
+        }
+      },
+      "basis": {
+        "licensedStations": "PENDING",
+        "newLicenses": "PENDING",
+        "techViolations": "PENDING",
+        "licenseViolations": "PENDING",
+        "spectrumFeeKRW1k": "PENDING",
+        "inspections": "PENDING"
+      }
+    }
+  ]
+}
