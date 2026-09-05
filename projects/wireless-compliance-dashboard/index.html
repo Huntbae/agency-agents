@@ -6,9 +6,9 @@
 <style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>전파 준수 대시보드</title>
+<title>무선국 준수 대시보드</title>
 <style>
-  .viz-root{
+  :root{
     color-scheme:light;
     --surface-1:#fcfcfb; --plane:#f9f9f7;
     --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#898781;
@@ -20,7 +20,7 @@
     --chip-req:#2a78d6; --chip-cond:#eda100; --chip-na:#898781;
   }
   @media (prefers-color-scheme:dark){
-    :root:where(:not([data-theme="light"])) .viz-root{
+    :root:not([data-theme="light"]){
       color-scheme:dark;
       --surface-1:#1a1a19; --plane:#0d0d0d;
       --text-primary:#fff; --text-secondary:#c3c2b7; --text-muted:#898781;
@@ -31,7 +31,7 @@
       --chip-req:#3987e5; --chip-cond:#c98500; --chip-na:#898781;
     }
   }
-  :root[data-theme="dark"] .viz-root{
+  :root[data-theme="dark"]{
     color-scheme:dark;
     --surface-1:#1a1a19; --plane:#0d0d0d;
     --text-primary:#fff; --text-secondary:#c3c2b7; --text-muted:#898781;
