@@ -1,0 +1,181 @@
+{
+  "$schema": "./schema.md#rrb_national_stats",
+  "version": "1.0.0",
+  "dataset": {
+    "recordId": "15054180",
+    "title": "과학기술정보통신부 중앙전파관리소_전파관리통계",
+    "orgName": "과학기술정보통신부 중앙전파관리소",
+    "deptName": "전파관제과",
+    "portalUrl": "https://www.data.go.kr/data/15054180/fileData.do",
+    "latestFile": "과학기술정보통신부 중앙전파관리소_전파관리통계_20260531",
+    "format": "CSV",
+    "license": "이용허락범위 제한 없음",
+    "updateCycle": "분기",
+    "modifiedDate": "2026-06-29",
+    "nextRegistrationDate": "2026-09-30",
+    "rowCount": 17,
+    "columnCount": 9,
+    "note": "데이터 시점은 전월말이나, 기관 내부 업로드·수합·분석 소요기간을 감안하여 익월말을 기준일로 설정"
+  },
+  "ingestion": {
+    "status": "PENDING_INGEST",
+    "reason": "본 실행 환경의 아웃바운드 프록시가 www.data.go.kr 과 api.odcloud.kr 을 모두 차단하여(CONNECT 403) CSV·오픈API 어느 경로로도 원자료를 받지 못했습니다.",
+    "howToFill": "경로 A(오픈API): 포털에서 활용신청 후 인증키를 발급받아 `export DATA_GO_KR_SERVICE_KEY=...` 설정 뒤 `python3 scripts/fetch_rrb_api.py --path '15054180/v1/uddi:...'` 실행. 경로 B(CSV): 포털에서 CSV를 내려받아 `python3 scripts/ingest_rrb_csv.py <내려받은.csv>` 실행. 두 경로 모두 scripts/rrb_common.py 의 같은 정규화 규칙을 쓴다.",
+    "observedAt": "2026-09-05",
+    "apiNote": "이 데이터는 포털 목록상 FILE 유형이며, 중앙전파관리소의 API 유형 목록은 2026-07 스냅샷 기준 0건이다. 파일데이터 오픈API가 별도 제공되지 않으면 경로 A는 NO_OPENAPI_SERVICE_ERROR 를 반환하므로 경로 B를 써야 한다."
+  },
+  "periods": [
+    {
+      "key": "2023",
+      "label": "2023년",
+      "granularity": "YEAR"
+    },
+    {
+      "key": "2024",
+      "label": "2024년",
+      "granularity": "YEAR"
+    },
+    {
+      "key": "2025",
+      "label": "2025년",
+      "granularity": "YEAR"
+    },
+    {
+      "key": "2026-01",
+      "label": "2026년1월",
+      "granularity": "MONTH"
+    },
+    {
+      "key": "2026-02",
+      "label": "2026년2월",
+      "granularity": "MONTH"
+    },
+    {
+      "key": "2026-03",
+      "label": "2026년3월",
+      "granularity": "MONTH"
+    },
+    {
+      "key": "2026-04",
+      "label": "2026년4월",
+      "granularity": "MONTH"
+    },
+    {
+      "key": "2026-05",
+      "label": "2026년5월",
+      "granularity": "MONTH"
+    }
+  ],
+  "seriesCatalogNote": "아래 series 의 '구분' 라벨은 포털 목록 메타데이터의 데이터 설명문에서 도출한 예상 분류이며, 원본 CSV의 실제 '구분' 문자열과 다를 수 있다. ingest 스크립트는 원본 라벨을 정본으로 채택하고 아래 항목에 매핑한다.",
+  "series": [
+    {
+      "id": "LIC_STATIONS_TOTAL",
+      "label": "허가·신고 무선국 국수",
+      "group": "허가신고",
+      "unit": "국",
+      "carrierAttributable": false,
+      "values": {}
+    },
+    {
+      "id": "LIC_DEEMED",
+      "label": "허가의제 무선국 현황",
+      "group": "허가신고",
+      "unit": "국",
+      "carrierAttributable": true,
+      "attributionBasis": "전파법 제19조제2항 — 이동통신 가입자 단말 무선국",
+      "values": {}
+    },
+    {
+      "id": "LIC_NEW",
+      "label": "신규 허가 건수",
+      "group": "허가신고",
+      "unit": "건",
+      "carrierAttributable": false,
+      "values": {}
+    },
+    {
+      "id": "LIC_MOM",
+      "label": "허가신고 전월 대비 증감",
+      "group": "허가신고",
+      "unit": "국",
+      "carrierAttributable": false,
+      "values": {}
+    },
+    {
+      "id": "LIC_YOY",
+      "label": "허가신고 전년 대비 증감",
+      "group": "허가신고",
+      "unit": "국",
+      "carrierAttributable": false,
+      "values": {}
+    },
+    {
+      "id": "INSP_STATIONS",
+      "label": "검사 무선국 건수",
+      "group": "검사",
+      "unit": "건",
+      "carrierAttributable": false,
+      "attributionBasis": "전파법 제24조",
+      "values": {}
+    },
+    {
+      "id": "FEE_AMOUNT",
+      "label": "전파사용료 부과·징수액",
+      "group": "전파사용료",
+      "unit": "천원",
+      "carrierAttributable": true,
+      "attributionBasis": "전파법 제67조·제68조",
+      "values": {}
+    },
+    {
+      "id": "MON_ILLEGAL",
+      "label": "불법 무선국 적발 건수",
+      "group": "전파감시",
+      "unit": "건",
+      "carrierAttributable": false,
+      "values": {}
+    },
+    {
+      "id": "MON_LICENSE_VIOL",
+      "label": "허가·신고 위반 건수",
+      "group": "전파감시",
+      "unit": "건",
+      "carrierAttributable": true,
+      "attributionBasis": "전파법 제19조·제19조의2",
+      "values": {}
+    },
+    {
+      "id": "MON_TECH_VIOL",
+      "label": "기술기준 위반 건수",
+      "group": "전파감시",
+      "unit": "건",
+      "carrierAttributable": true,
+      "attributionBasis": "전파법 제45조 · 무선설비규칙",
+      "values": {}
+    },
+    {
+      "id": "CERT_ICT_OPERATOR",
+      "label": "정보통신사업자 인증 건수",
+      "group": "인증",
+      "unit": "건",
+      "carrierAttributable": false,
+      "values": {}
+    },
+    {
+      "id": "CERT_BLDG_BROADBAND",
+      "label": "초고속정보통신건물 인증 건수",
+      "group": "인증",
+      "unit": "건",
+      "carrierAttributable": false,
+      "values": {}
+    },
+    {
+      "id": "CERT_BLDG_HOMENET",
+      "label": "홈네트워크건물 인증 건수",
+      "group": "인증",
+      "unit": "건",
+      "carrierAttributable": false,
+      "values": {}
+    }
+  ]
+}

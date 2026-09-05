@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>무선국 준수 대시보드</title>
+<style>
+  :root{
+    color-scheme:light;
+    --surface-1:#fcfcfb; --plane:#f9f9f7;
+    --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+    --series-1:#2a78d6; --series-2:#eb6834; --series-3:#1baf7a;
+    --series-4:#eda100; --series-5:#e87ba4; --series-6:#008300;
+    --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+    --delta-up:#006300;
+    --chip-req:#2a78d6; --chip-cond:#eda100; --chip-na:#898781;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --surface-1:#1a1a19; --plane:#0d0d0d;
+      --text-primary:#fff; --text-secondary:#c3c2b7; --text-muted:#898781;
+      --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+      --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+      --series-4:#c98500; --series-5:#d55181; --series-6:#008300;
+      --delta-up:#0ca30c;
+      --chip-req:#3987e5; --chip-cond:#c98500; --chip-na:#898781;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --surface-1:#1a1a19; --plane:#0d0d0d;
+    --text-primary:#fff; --text-secondary:#c3c2b7; --text-muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+    --series-4:#c98500; --series-5:#d55181; --series-6:#008300;
+    --delta-up:#0ca30c;
+    --chip-req:#3987e5; --chip-cond:#c98500; --chip-na:#898781;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--text-primary);
+    font:400 14px/1.55 system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .viz-root{background:var(--plane);min-height:100vh}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
+
+  header.page{margin-bottom:20px}
+  h1{font-size:23px;line-height:1.3;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--text-secondary);font-size:13.5px;margin:0}
+  .srconly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  .banner{border:1px solid var(--border);background:var(--surface-1);border-radius:10px;
+    padding:14px 16px;margin:18px 0 22px;display:flex;gap:12px;align-items:flex-start}
+  .banner .mark{flex:0 0 auto;width:20px;height:20px;border-radius:50%;
+    display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;background:var(--warning);margin-top:1px}
+  .banner b{display:block;margin-bottom:3px;font-size:13.5px}
+  .banner p{margin:0;color:var(--text-secondary);font-size:13px}
+
+  nav.tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--border);margin-bottom:22px}
+  nav.tabs button{appearance:none;border:0;background:none;font:inherit;font-size:13.5px;
+    color:var(--text-secondary);padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  nav.tabs button:hover{color:var(--text-primary)}
+  nav.tabs button[aria-selected="true"]{color:var(--text-primary);font-weight:600;border-bottom-color:var(--series-1)}
+
+  .controls{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:11.5px;color:var(--text-muted);letter-spacing:.02em}
+  select,.btn{font:inherit;font-size:13px;color:var(--text-primary);background:var(--surface-1);
+    border:1px solid var(--border);border-radius:7px;padding:6px 10px;cursor:pointer}
+  .btn[aria-pressed="true"]{border-color:var(--series-1);color:var(--series-1);font-weight:600}
+  .seg{display:flex;gap:0}
+  .seg .btn{border-radius:0;margin-left:-1px}
+  .seg .btn:first-child{border-radius:7px 0 0 7px;margin-left:0}
+  .seg .btn:last-child{border-radius:0 7px 7px 0}
+
+  .grid{display:grid;gap:14px}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .card{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+  .card h3{margin:0 0 2px;font-size:12.5px;font-weight:500;color:var(--text-secondary)}
+  .card .val{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+  .card .unit{font-size:13px;font-weight:400;color:var(--text-secondary);margin-left:3px}
+  .card .meta{font-size:12px;color:var(--text-muted);margin-top:5px}
+  .card .meta .up{color:var(--delta-up);font-weight:600}
+  .card .meta .down{color:var(--critical);font-weight:600}
+  .pending{color:var(--text-muted);font-size:19px;font-weight:500}
+
+  .chartcard{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:18px 18px 12px}
+  .chartcard > h2{margin:0 0 3px;font-size:15px;font-weight:600}
+  .chartcard > .note{margin:0 0 14px;font-size:12.5px;color:var(--text-secondary)}
+  .plot{position:relative;width:100%;overflow-x:auto}
+  svg{display:block;max-width:100%}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 0;padding:0;list-style:none;font-size:12.5px;color:var(--text-secondary)}
+  .legend li{display:flex;align-items:center;gap:6px}
+  .swatch{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+
+  .tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20;
+    background:var(--surface-1);border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+    box-shadow:0 6px 22px rgba(0,0,0,.14);font-size:12.5px;min-width:130px}
+  .tip b{display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);font-weight:500}
+  .tip .row{display:flex;align-items:center;gap:7px;justify-content:space-between;margin-top:2px}
+  .tip .row .k{display:flex;align-items:center;gap:6px;color:var(--text-secondary)}
+  .tip .row .v{font-variant-numeric:tabular-nums;font-weight:600}
+
+  details.tableview{margin-top:14px;border-top:1px solid var(--border);padding-top:10px}
+  details.tableview summary{cursor:pointer;font-size:12.5px;color:var(--text-secondary);list-style:none}
+  details.tableview summary::-webkit-details-marker{display:none}
+  details.tableview summary::before{content:"표로 보기  ▸";}
+  details.tableview[open] summary::before{content:"표로 보기  ▾";}
+  .tblwrap{overflow-x:auto;margin-top:10px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--grid);vertical-align:top}
+  th{color:var(--text-secondary);font-weight:600;white-space:nowrap}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:color-mix(in srgb,var(--series-1) 5%,transparent)}
+
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+    padding:2px 8px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+  .chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .chip.req{color:var(--chip-req);border-color:color-mix(in srgb,var(--chip-req) 35%,transparent);
+    background:color-mix(in srgb,var(--chip-req) 10%,transparent)}
+  .chip.cond{color:var(--chip-cond);border-color:color-mix(in srgb,var(--chip-cond) 35%,transparent);
+    background:color-mix(in srgb,var(--chip-cond) 12%,transparent)}
+  .chip.na{color:var(--chip-na);border-color:color-mix(in srgb,var(--chip-na) 35%,transparent);
+    background:color-mix(in srgb,var(--chip-na) 10%,transparent)}
+
+  .matrix th.rot{font-size:11.5px;white-space:normal;min-width:78px;vertical-align:bottom}
+  .matrix td.std{min-width:210px}
+  .matrix td.std .nm{font-weight:600;display:block}
+  .matrix td.std .ref{color:var(--text-muted);font-size:11.5px}
+  .matrix td.c{text-align:center}
+  .matrix td.c .qual{font-size:10.5px;color:var(--text-muted);margin-top:3px;line-height:1.3}
+  .matrix th.rot{max-width:104px}
+  .matrix tbody tr td:first-child{position:sticky;left:0;background:var(--surface-1)}
+
+  .stack{display:grid;gap:18px}
+  .prose h2{font-size:15px;margin:22px 0 6px}
+  .prose h2:first-child{margin-top:0}
+  .prose p,.prose li{color:var(--text-secondary);font-size:13.5px}
+  .prose ul{padding-left:18px;margin:6px 0}
+  .prose code{font-size:12.5px;background:color-mix(in srgb,var(--text-primary) 7%,transparent);
+    padding:1px 5px;border-radius:4px}
+  .prose a{color:var(--series-1)}
+  .hidden{display:none}
+  @media (max-width:640px){ .wrap{padding:20px 14px 56px} h1{font-size:19px} .card .val{font-size:22px} }
+</style>
+
+<div class="viz-root">
+<div class="wrap">
+  <header class="page">
+    <h1>사업자별 무선국 허가·기술기준 준수 현황 대시보드</h1>
+    <p class="sub">과학기술정보통신부 중앙전파관리소 전파관리통계(공공데이터포털 15054180) · 「전파법」·「무선설비규칙」 조문 기준</p>
+  </header>
+
+  <div class="banner" id="banner">
+    <span class="mark" aria-hidden="true">!</span>
+    <div>
+      <b id="bannerTitle"></b>
+      <p id="bannerBody"></p>
+    </div>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <section id="panel-overview" role="tabpanel"></section>
+  <section id="panel-carriers" role="tabpanel" class="hidden"></section>
+  <section id="panel-trend" role="tabpanel" class="hidden"></section>
+  <section id="panel-standards" role="tabpanel" class="hidden"></section>
+  <section id="panel-notes" role="tabpanel" class="hidden"></section>
+</div>
+</div>
+
+<script id="dashboard-data" type="application/json">{"national":{"$schema":"./schema.md#rrb_national_stats","version":"1.0.0","dataset":{"recordId":"15054180","title":"과학기술정보통신부 중앙전파관리소_전파관리통계","orgName":"과학기술정보통신부 중앙전파관리소","deptName":"전파관제과","portalUrl":"https://www.data.go.kr/data/15054180/fileData.do","latestFile":"과학기술정보통신부 중앙전파관리소_전파관리통계_20260531","format":"CSV","license":"이용허락범위 제한 없음","updateCycle":"분기","modifiedDate":"2026-06-29","nextRegistrationDate":"2026-09-30","rowCount":17,"columnCount":9,"note":"데이터 시점은 전월말이나, 기관 내부 업로드·수합·분석 소요기간을 감안하여 익월말을 기준일로 설정"},"ingestion":{"status":"PENDING_INGEST","reason":"본 실행 환경의 아웃바운드 프록시가 www.data.go.kr 과 api.odcloud.kr 을 모두 차단하여(CONNECT 403) CSV·오픈API 어느 경로로도 원자료를 받지 못했습니다.","howToFill":"경로 A(오픈API): 포털에서 활용신청 후 인증키를 발급받아 `export DATA_GO_KR_SERVICE_KEY=...` 설정 뒤 `python3 scripts/fetch_rrb_api.py --path '15054180/v1/uddi:...'` 실행. 경로 B(CSV): 포털에서 CSV를 내려받아 `python3 scripts/ingest_rrb_csv.py \u003c내려받은.csv>` 실행. 두 경로 모두 scripts/rrb_common.py 의 같은 정규화 규칙을 쓴다.","observedAt":"2026-09-05","apiNote":"이 데이터는 포털 목록상 FILE 유형이며, 중앙전파관리소의 API 유형 목록은 2026-07 스냅샷 기준 0건이다. 파일데이터 오픈API가 별도 제공되지 않으면 경로 A는 NO_OPENAPI_SERVICE_ERROR 를 반환하므로 경로 B를 써야 한다."},"periods":[{"key":"2023","label":"2023년","granularity":"YEAR"},{"key":"2024","label":"2024년","granularity":"YEAR"},{"key":"2025","label":"2025년","granularity":"YEAR"},{"key":"2026-01","label":"2026년1월","granularity":"MONTH"},{"key":"2026-02","label":"2026년2월","granularity":"MONTH"},{"key":"2026-03","label":"2026년3월","granularity":"MONTH"},{"key":"2026-04","label":"2026년4월","granularity":"MONTH"},{"key":"2026-05","label":"2026년5월","granularity":"MONTH"}],"seriesCatalogNote":"아래 series 의 '구분' 라벨은 포털 목록 메타데이터의 데이터 설명문에서 도출한 예상 분류이며, 원본 CSV의 실제 '구분' 문자열과 다를 수 있다. ingest 스크립트는 원본 라벨을 정본으로 채택하고 아래 항목에 매핑한다.","series":[{"id":"LIC_STATIONS_TOTAL","label":"허가·신고 무선국 국수","group":"허가신고","unit":"국","carrierAttributable":false,"values":{}},{"id":"LIC_DEEMED","label":"허가의제 무선국 현황","group":"허가신고","unit":"국","carrierAttributable":true,"attributionBasis":"전파법 제19조제2항 — 이동통신 가입자 단말 무선국","values":{}},{"id":"LIC_NEW","label":"신규 허가 건수","group":"허가신고","unit":"건","carrierAttributable":false,"values":{}},{"id":"LIC_MOM","label":"허가신고 전월 대비 증감","group":"허가신고","unit":"국","carrierAttributable":false,"values":{}},{"id":"LIC_YOY","label":"허가신고 전년 대비 증감","group":"허가신고","unit":"국","carrierAttributable":false,"values":{}},{"id":"INSP_STATIONS","label":"검사 무선국 건수","group":"검사","unit":"건","carrierAttributable":false,"attributionBasis":"전파법 제24조","values":{}},{"id":"FEE_AMOUNT","label":"전파사용료 부과·징수액","group":"전파사용료","unit":"천원","carrierAttributable":true,"attributionBasis":"전파법 제67조·제68조","values":{}},{"id":"MON_ILLEGAL","label":"불법 무선국 적발 건수","group":"전파감시","unit":"건","carrierAttributable":false,"values":{}},{"id":"MON_LICENSE_VIOL","label":"허가·신고 위반 건수","group":"전파감시","unit":"건","carrierAttributable":true,"attributionBasis":"전파법 제19조·제19조의2","values":{}},{"id":"MON_TECH_VIOL","label":"기술기준 위반 건수","group":"전파감시","unit":"건","carrierAttributable":true,"attributionBasis":"전파법 제45조 · 무선설비규칙","values":{}},{"id":"CERT_ICT_OPERATOR","label":"정보통신사업자 인증 건수","group":"인증","unit":"건","carrierAttributable":false,"values":{}},{"id":"CERT_BLDG_BROADBAND","label":"초고속정보통신건물 인증 건수","group":"인증","unit":"건","carrierAttributable":false,"values":{}},{"id":"CERT_BLDG_HOMENET","label":"홈네트워크건물 인증 건수","group":"인증","unit":"건","carrierAttributable":false,"values":{}}]},"carriers":{"$schema":"./schema.md#carriers","version":"1.0.0","note":"본 마스터는 사업자의 '구조적·법적 속성'만을 담는다. 허가 건수·위반 건수·전파사용료 납부액 등 실적 수치는 이 파일에 두지 않으며, 공표 원자료를 ingest 한 뒤 carrier_metrics.json 에서 관리한다.","carriers":[{"id":"SKT","name":"SK텔레콤","type":"MNO","role":"주파수할당 기간통신사업자","ownsRadioStations":true,"verified":"법적 지위 기준(전파법 제11조 할당 사업자)"},{"id":"KT","name":"KT","type":"MNO","role":"주파수할당 기간통신사업자","ownsRadioStations":true,"verified":"법적 지위 기준(전파법 제11조 할당 사업자)"},{"id":"LGU","name":"LG유플러스","type":"MNO","role":"주파수할당 기간통신사업자","ownsRadioStations":true,"verified":"법적 지위 기준(전파법 제11조 할당 사업자)"},{"id":"MVNO","name":"알뜰폰(MVNO) 사업자군","type":"MVNO","role":"도매제공 기반 재판매사업자","ownsRadioStations":false,"verified":"설비 미보유 — 무선국 시설자 아님"},{"id":"P5G","name":"이음5G(5G 특화망) 사업자군","type":"PRIVATE5G","role":"특화망 주파수 지정·할당 사업자","ownsRadioStations":true,"verified":"-"},{"id":"PSN","name":"공공안전·전용망 운영기관군","type":"PS_NET","role":"재난안전통신망·철도망·해상망 운영","ownsRadioStations":true,"verified":"국가·지방자치단체 개설(전파법 제67조제1항제1호)"},{"id":"BCT","name":"지상파방송사업자군","type":"BC_TERR","role":"지상파 방송국 운용","ownsRadioStations":true,"verified":"-"},{"id":"BCS","name":"위성·종합유선방송사업자군","type":"BC_SAT_CATV","role":"위성방송·종합유선방송 역무","ownsRadioStations":true,"verified":"-"},{"id":"SAT","name":"위성통신사업자군","type":"SAT_FSS","role":"우주국·지구국 운용","ownsRadioStations":true,"verified":"-"},{"id":"GEN","name":"간이·생활·아마추어 무선국","type":"GENERAL","role":"일반 이용자 개설 무선국","ownsRadioStations":true,"verified":"-"}]},"techStandards":{"$schema":"./schema.md#tech_standards","version":"1.0.0","generatedAt":"2026-09-05","legalBasis":{"parentAct":{"name":"전파법","lawId":"001732","mst":"276245","promulgated":"2025-10-01","effective":"2026-01-02"},"technicalRule":{"name":"무선설비규칙","lawId":"012646","mst":"239167","promulgated":"2022-01-04","effective":"2022-01-04","issuer":"과학기술정보통신부령"},"retrievedVia":"korean-law MCP (법제처 국가법령정보 연계)","retrievedAt":"2026-09-05"},"carrierTypes":[{"code":"MNO","label":"이동통신사업자","shortLabel":"이동통신","definition":"「전파법」 제11조에 따라 주파수를 할당받아 이동통신 역무를 제공하는 기간통신사업자","examples":["SK텔레콤","KT","LG유플러스"],"openingRoute":{"route":"신고","basis":"전파법 제19조의2제1항제3호","note":"주파수할당을 받은 자가 전기통신역무 제공을 위해 개설하는 무선국(기지국)은 허가가 아닌 신고 대상"},"subscriberStationRoute":{"route":"허가의제","basis":"전파법 제19조제2항","note":"가입자 단말 무선국은 이용계약 체결 시 허가받은 것으로 의제되며, 변경허가·검사·전파사용료 규정이 적용되지 않음"},"inspection":{"준공검사":"전파법 제24조제1항제2호","정기검사":"전파법 제24조제4항제2호","표본검사":"전파법 제24조제1항 단서 — 제19조의2제1항제3호 무선국 중 대통령령으로 정하는 경우"},"spectrumFee":{"status":"감면대상","basis":"전파법 제67조제1항제5호","assessment":"가입자 수 기준 산정 가능","assessmentBasis":"전파법 제68조제1항 단서","note":"가입자 단말(제19조제2항 무선국)은 제67조제1항제3호에 따라 전부 면제"}},{"code":"MVNO","label":"알뜰폰사업자","shortLabel":"알뜰폰","definition":"주파수를 직접 할당받지 않고 MNO 설비를 도매로 임차하여 역무를 제공하는 사업자","examples":["기간통신사업 등록 MVNO"],"openingRoute":{"route":"해당없음","basis":"-","note":"자체 무선국(기지국)을 개설하지 않으므로 무선국 개설 주체가 아님. 기술기준 준수 책임은 설비를 보유한 MNO에 귀속"},"subscriberStationRoute":{"route":"허가의제","basis":"전파법 제19조제2항","note":"가입자 단말은 이용계약 체결로 허가 의제"},"inspection":{"준공검사":"해당없음","정기검사":"해당없음","표본검사":"해당없음"},"spectrumFee":{"status":"해당없음(설비보유 MNO에 귀속)","basis":"-","assessment":"-","assessmentBasis":"-","note":"무선국 시설자가 아니므로 전파사용료 부과 대상 아님"}},{"code":"PRIVATE5G","label":"5G 특화망 사업자","shortLabel":"이음5G","definition":"제한된 구역에서 자가 또는 기업용 5G망을 구축·운용하는 사업자","examples":["이음5G 주파수 지정·할당 사업자"],"openingRoute":{"route":"신고 또는 허가","basis":"전파법 제19조의2제1항제3호 / 제19조제1항","note":"주파수할당 경로에 따라 신고 또는 허가로 갈림"},"subscriberStationRoute":{"route":"조건부 허가의제","basis":"전파법 제19조제2항","note":"전기통신역무 제공 형태일 때 단말 의제 적용"},"inspection":{"준공검사":"전파법 제24조제1항","정기검사":"전파법 제24조제4항","표본검사":"조건부"},"spectrumFee":{"status":"부과대상(감면 검토)","basis":"전파법 제67조제1항","assessment":"주파수 대역·전파의 폭·안테나공급전력 기준","assessmentBasis":"전파법 제68조제1항 본문","note":"가입자 기준 산정 특례는 제11·12조 할당 주파수로 역무를 제공하는 기간통신사업자에 한정"}},{"code":"PS_NET","label":"공공안전·전용망 운영기관","shortLabel":"공공안전망","definition":"재난안전통신망(PS-LTE), 철도통합망(LTE-R), 해상망(LTE-M) 등 공공 목적 전용망 운영 주체","examples":["국가·지방자치단체 운영망"],"openingRoute":{"route":"허가","basis":"전파법 제19조제1항","note":"주파수 사용승인 경로(제19조제5항) 적용 가능"},"subscriberStationRoute":{"route":"허가","basis":"전파법 제19조제1항","note":"-"},"inspection":{"준공검사":"전파법 제24조제1항제1호","정기검사":"전파법 제24조제4항제1호","표본검사":"해당없음"},"spectrumFee":{"status":"전부 면제","basis":"전파법 제67조제1항제1호","assessment":"-","assessmentBasis":"-","note":"국가·지방자치단체가 개설한 무선국"}},{"code":"BC_TERR","label":"지상파방송사업자","shortLabel":"지상파방송","definition":"지상파 TV·라디오 방송국을 개설·운용하는 사업자","examples":["지상파방송사업자 방송국"],"openingRoute":{"route":"허가","basis":"전파법 제19조제1항","note":"-"},"subscriberStationRoute":{"route":"해당없음","basis":"-","note":"수신전용 설비는 기술기준 적용 제외(전파법 제45조 괄호)"},"inspection":{"준공검사":"전파법 제24조제1항제1호","정기검사":"전파법 제24조제4항제1호","표본검사":"해당없음"},"spectrumFee":{"status":"전부 면제(분담금 납부 시)","basis":"전파법 제67조제1항제2호","assessment":"-","assessmentBasis":"-","note":"「방송통신발전 기본법」 제25조제2항에 따라 분담금을 내는 지상파방송사업자의 방송국"}},{"code":"BC_SAT_CATV","label":"위성방송·종합유선방송사업자","shortLabel":"위성/유선방송","definition":"위성방송 또는 종합유선방송 역무를 제공하는 사업자","examples":["위성방송사업자","종합유선방송사업자"],"openingRoute":{"route":"허가","basis":"전파법 제19조제1항","note":"-"},"subscriberStationRoute":{"route":"해당없음","basis":"-","note":"-"},"inspection":{"준공검사":"전파법 제24조제1항제1호","정기검사":"전파법 제24조제4항제1호","표본검사":"해당없음"},"spectrumFee":{"status":"전부·일부 감면","basis":"전파법 제67조제1항제4호","assessment":"주파수 대역·전파의 폭·안테나공급전력 기준","assessmentBasis":"전파법 제68조제1항 본문","note":"「방송통신발전 기본법」 제25조제3항 분담금 납부 사업자"}},{"code":"SAT_FSS","label":"위성통신사업자","shortLabel":"위성통신","definition":"우주국·지구국을 개설하여 위성통신 역무를 제공하는 사업자","examples":["고정위성업무 지구국 운용사업자"],"openingRoute":{"route":"허가","basis":"전파법 제19조제1항","note":"-"},"subscriberStationRoute":{"route":"허가 또는 신고","basis":"전파법 제19조제1항 / 제19조의2","note":"단말형 지구국은 유형별로 갈림"},"inspection":{"준공검사":"전파법 제24조제1항제1호","정기검사":"전파법 제24조제4항제1호","표본검사":"해당없음"},"spectrumFee":{"status":"부과대상","basis":"전파법 제67조제1항","assessment":"주파수 대역·전파의 폭·안테나공급전력 기준","assessmentBasis":"전파법 제68조제1항 본문","note":"-"}},{"code":"GENERAL","label":"간이무선·생활무선·아마추어","shortLabel":"간이/생활무선","definition":"간이무선국, 생활무선국, 아마추어국 등 일반 이용자 개설 무선국","examples":["간이무선국","생활무선국","아마추어국"],"openingRoute":{"route":"허가 또는 신고(미약전파는 신고 면제)","basis":"전파법 제19조제1항 / 제19조의2제1항·제2항","note":"발사 전파가 미약한 무선국은 신고 없이 개설 가능(제19조의2제2항)"},"subscriberStationRoute":{"route":"해당없음","basis":"-","note":"-"},"inspection":{"준공검사":"전파법 제24조제1항(허가 무선국)","정기검사":"전파법 제24조제4항(허가 무선국)","표본검사":"해당없음"},"spectrumFee":{"status":"부과대상(공공복리 목적 감면 가능)","basis":"전파법 제67조제1항 / 같은 항 제6호","assessment":"주파수 대역·전파의 폭·안테나공급전력 기준","assessmentBasis":"전파법 제68조제1항 본문","note":"-"}}],"standards":[{"id":"TS-01","category":"전파의 질","name":"주파수 허용편차","definition":"송신설비에서 발사되는 전파의 중심주파수가 지정주파수로부터 벗어날 수 있는 허용 한계","legalRef":"무선설비규칙 제5조","annex":"별표 1","measure":"지정주파수 대비 편차 (10^-6 또는 Hz)","delegation":"무선설비의 용도에 따라 과학기술정보통신부장관이 별도 고시 가능(제5조제1항 단서). 적용이 어려운 경우 ITU 기준 적용(제5조제2항)","violationImpact":"인접 채널 침범·혼신 유발, 검사 부적합 판정","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-02","category":"전파의 질","name":"점유주파수대역폭의 허용치","definition":"발사 전파의 전력 대부분이 포함되는 주파수 대역폭의 상한","legalRef":"무선설비규칙 제6조","annex":"별표 2","measure":"대역폭 (kHz/MHz)","delegation":"용도별 별도 고시 가능(제6조제1항 단서). 적용이 어려운 경우 ITU 필요주파수대역폭 적용(제6조제2항)","violationImpact":"할당 대역 초과 점유로 인접 사업자 대역 간섭","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-03","category":"불요발사","name":"협대역·광대역 시스템의 스퓨리어스 영역 경계기준","definition":"대역외 영역과 스퓨리어스 영역을 구분하는 주파수 경계의 산정 기준","legalRef":"무선설비규칙 제7조","annex":"별표 3","measure":"경계 오프셋 주파수","delegation":"별표 3에 직접 규정(단서 없음)","violationImpact":"불요발사 측정 구간 오적용으로 적합성 판정 왜곡","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-04","category":"불요발사","name":"스퓨리어스 영역 불요발사의 허용치","definition":"스퓨리어스 영역에서 방사되는 불요발사 전력의 상한","legalRef":"무선설비규칙 제8조","annex":"별표 4","measure":"절대전력(dBm) 또는 반송파 대비 감쇠량(dBc)","delegation":"용도별 별도 고시 가능(제8조제1항 단서). 적용이 어려운 경우 ITU 기준 적용(제8조제2항)","violationImpact":"타 업무 대역 혼신·전파감시 적발의 대표 사유","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-05","category":"공중선전력","name":"전파형식별 안테나공급전력 표시 및 환산비","definition":"전파형식에 따른 안테나공급전력의 표시 방법과 형식 간 환산 비율","legalRef":"무선설비규칙 제9조제1항","annex":"별표 5","measure":"환산비(무차원)","delegation":"별표 5에 규정","violationImpact":"전력 신고값과 실측값 불일치, 전파사용료 산정 기초 오류","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-06","category":"공중선전력","name":"안테나공급전력 허용편차","definition":"송신설비의 실제 안테나공급전력이 지정전력에서 벗어날 수 있는 허용 범위","legalRef":"무선설비규칙 제9조제1항","annex":"별표 6","measure":"지정전력 대비 상·하한 편차(%)","delegation":"용도별 별도 고시 가능(제9조제1항 단서)","violationImpact":"과출력 시 커버리지 침범·혼신, 과소출력 시 서비스 품질 저하","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-07","category":"공중선전력","name":"전력 표시방식(안테나공급전력 원칙, 규격전력 예외)","definition":"송신설비 전력은 안테나공급전력으로 표시하되, 일정 요건의 설비는 규격전력으로 표시","legalRef":"무선설비규칙 제9조제2항","annex":"-","measure":"표시 구분(안테나공급전력 / 규격전력)","delegation":"규격전력 예외 대상: 500MHz 이하·정격출력 1W 이하 설비, 생존정 비상용 설비, 아마추어국·실험국 송신설비 등","violationImpact":"표시방식 오적용 시 허가·검사 기재사항 불일치","applicability":{"MNO":"필수(안테나공급전력)","MVNO":"해당없음","PRIVATE5G":"필수(안테나공급전력)","PS_NET":"필수(안테나공급전력)","BC_TERR":"필수(안테나공급전력)","BC_SAT_CATV":"필수(안테나공급전력)","SAT_FSS":"필수(안테나공급전력)","GENERAL":"조건부(규격전력 예외 적용)"}},{"id":"TS-08","category":"공중선전력","name":"등가등방복사전력(EIRP)·실효복사전력(ERP) 병기","definition":"전파이용질서 유지·보호를 위해 필요 시 EIRP 또는 ERP를 함께 표시","legalRef":"무선설비규칙 제9조제3항","annex":"-","measure":"EIRP / ERP (dBm, W)","delegation":"과학기술정보통신부장관이 필요하다고 인정하는 경우","violationImpact":"고출력 기지국 인체보호·간섭 검토 기초자료 누락","applicability":{"MNO":"조건부","MVNO":"해당없음","PRIVATE5G":"조건부","PS_NET":"조건부","BC_TERR":"조건부","BC_SAT_CATV":"조건부","SAT_FSS":"조건부","GENERAL":"조건부"}},{"id":"TS-09","category":"변조특성","name":"변조도 및 최대주파수편이 제한","definition":"진폭변조 시 변조도 100% 초과 금지, 주파수변조 시 최대주파수편이 범위 초과 금지","legalRef":"무선설비규칙 제10조제1항","annex":"-","measure":"변조도(%), 최대주파수편이(kHz)","delegation":"규칙 본문에 직접 규정","violationImpact":"과변조에 따른 대역폭 확산 및 인접 채널 간섭","applicability":{"MNO":"조건부","MVNO":"해당없음","PRIVATE5G":"조건부","PS_NET":"조건부","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"조건부","GENERAL":"필수"}},{"id":"TS-10","category":"변조특성","name":"최고 통신속도·최고 변조주파수 안정 동작","definition":"무선설비는 최고 통신속도 또는 최고 변조주파수에서 안정적으로 작동하여야 함","legalRef":"무선설비규칙 제10조제2항","annex":"-","measure":"정성 요건(안정 동작 여부)","delegation":"규칙 본문에 직접 규정","violationImpact":"고부하 조건에서 규격 이탈, 검사 부적합","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-11","category":"인체보호","name":"전자파 인체보호기준 준수 및 안전시설 설치","definition":"무선설비등에서 방출되는 전자파 강도가 인체보호기준을 초과하지 않도록 하고, 초과 장소에는 안전시설 설치","legalRef":"전파법 제47조의2제2항","annex":"과학기술정보통신부 고시(인체보호기준·등급기준·측정기준)","measure":"전자파 강도(V/m, A/m, W/m²), 전자파흡수율(SAR)","delegation":"제47조의2제1항 각 호 사항을 장관이 고시","violationImpact":"안전시설 설치·운용제한·운용정지 명령 대상(제47조의2제6항)","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-12","category":"인체보호","name":"전자파 강도 측정·보고 의무","definition":"안테나공급전력·설치장소가 대통령령 기준에 해당하는 무선국 시설자의 전자파 강도 측정 및 보고","legalRef":"전파법 제47조의2제3항","annex":"-","measure":"측정 결과 보고서","delegation":"보고 시기·방법은 대통령령. 제24조 검사 시 측정 요청으로 보고의무 이행 간주 가능(제47조의2제4항)","violationImpact":"미보고·거짓보고 시 장관의 측정·조사 및 조치명령 대상","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"조건부","PS_NET":"조건부","BC_TERR":"필수","BC_SAT_CATV":"조건부","SAT_FSS":"조건부","GENERAL":"조건부"}},{"id":"TS-13","category":"인체보호","name":"전자파 등급 표시","definition":"무선국 시설자·제작자·수입자의 전자파 등급 표시 의무","legalRef":"전파법 제47조의2제8항","annex":"고시로 정하는 표시대상·표시방법","measure":"등급 표시(1등급/2등급 등)","delegation":"제47조의2제1항제2호·제6호 고시","violationImpact":"표시의무 위반","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-14","category":"적합성 확인","name":"기술기준 적합의무(총괄)","definition":"방송수신 전용을 제외한 모든 무선설비는 주파수 허용편차·안테나공급전력 등 과학기술정보통신부령이 정하는 기술기준에 적합하여야 함","legalRef":"전파법 제45조","annex":"무선설비규칙 전반","measure":"적합/부적합","delegation":"구체적 기준은 무선설비규칙에 위임","violationImpact":"전파감시 '기술기준위반' 집계의 근거 조항","applicability":{"MNO":"필수","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"필수"}},{"id":"TS-15","category":"적합성 확인","name":"준공검사·정기검사 수검 의무","definition":"무선설비 준공 시 준공검사, 이후 5년 범위에서 무선국별로 정한 기간마다 정기검사 수검","legalRef":"전파법 제24조제1항·제4항","annex":"-","measure":"검사 합격/불합격, 재검사 여부","delegation":"검사 대상·시기·방법·절차는 대통령령. 일부 신고 무선국은 표본검사 가능(제24조제1항 단서)","violationImpact":"부적합 시 대통령령이 정한 기한까지 재검사(제24조제3항 단서)","applicability":{"MNO":"필수(표본검사 적용 가능)","MVNO":"해당없음","PRIVATE5G":"필수","PS_NET":"필수","BC_TERR":"필수","BC_SAT_CATV":"필수","SAT_FSS":"필수","GENERAL":"조건부(허가 무선국)"}}],"applicabilityLegend":{"필수":"해당 사업자 유형이 직접 준수·입증해야 하는 항목","조건부":"설비 유형·출력·전파형식 등 조건 충족 시에만 적용","해당없음":"해당 사업자 유형은 무선국 시설자가 아니거나 항목 성격상 적용 대상이 아님"}},"metricsOfficial":{"$schema":"./schema.md#carrier_metrics","profile":"official","synthetic":false,"status":"PENDING_INPUT","statusReason":"중앙전파관리소 전파관리통계(공공데이터포털 15054180)는 전국 총계만 공표하며 사업자별로 분해되어 있지 않다. 따라서 사업자별 실적 수치는 별도 원자료를 투입하기 전까지 비워 둔다.","acceptedSources":["과학기술정보통신부·중앙전파관리소 정보공개청구 회신(사업자별 무선국·검사·위반 내역)","국회 과학기술정보방송통신위원회 국정감사 요구자료(사업자별 전파사용료 납부액)","각 사업자 사업보고서·감사보고서상 전파사용료 계상액","전파법 제19조제3항에 따라 전기통신사업자가 통보한 가입자 수"],"howToFill":"scripts/ingest_rrb_csv.py 로 국가 총계를 정규화한 뒤, 위 원자료를 carriers[].metrics 에 채우고 각 값에 basis 를 표기한다. 값이 비어 있는 동안 대시보드는 해당 지표를 '미수집'으로 표시한다.","basisLegend":{"OFFICIAL":"공표·회신된 원자료를 그대로 옮긴 값","DERIVED":"공표된 총계와 공표된 분모로 산술 도출한 값","ESTIMATED":"안분 모델로 추정한 값 — 근거 지표와 배분식을 함께 표기해야 함","PENDING":"아직 채워지지 않음"},"periods":["2023","2024","2025","2026-01","2026-02","2026-03","2026-04","2026-05"],"metricUnits":{"licensedStations":"국","newLicenses":"건","techViolations":"건","licenseViolations":"건","spectrumFeeKRW1k":"천원","inspections":"건"},"carriers":[{"id":"SKT","label":"SK텔레콤","type":"MNO","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"KT","label":"KT","type":"MNO","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"LGU","label":"LG유플러스","type":"MNO","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"MVNO","label":"알뜰폰(MVNO) 사업자군","type":"MVNO","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"P5G","label":"이음5G 사업자군","type":"PRIVATE5G","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"PSN","label":"공공안전·전용망 운영기관군","type":"PS_NET","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"BCT","label":"지상파방송사업자군","type":"BC_TERR","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"BCS","label":"위성·종합유선방송사업자군","type":"BC_SAT_CATV","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"SAT","label":"위성통신사업자군","type":"SAT_FSS","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}},{"id":"GEN","label":"간이·생활·아마추어 무선국","type":"GENERAL","synthetic":false,"metrics":{"licensedStations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"newLicenses":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"techViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"licenseViolations":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"spectrumFeeKRW1k":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null},"inspections":{"2023":null,"2024":null,"2025":null,"2026-01":null,"2026-02":null,"2026-03":null,"2026-04":null,"2026-05":null}},"basis":{"licensedStations":"PENDING","newLicenses":"PENDING","techViolations":"PENDING","licenseViolations":"PENDING","spectrumFeeKRW1k":"PENDING","inspections":"PENDING"}}]},"metricsDemo":{"profile":"demo","synthetic":true,"warning":"이 파일의 모든 수치는 의사난수로 생성한 가상값이다. 실제 사업자의 실적이 아니며 인용·보고에 사용해서는 안 된다.","generator":"scripts/make_demo_dataset.py","seed":20260905,"periods":["2023","2024","2025","2026-01","2026-02","2026-03","2026-04","2026-05"],"metricUnits":{"licensedStations":"국","newLicenses":"건","techViolations":"건","licenseViolations":"건","spectrumFeeKRW1k":"천원","inspections":"건"},"carriers":[{"id":"DEMO_MNO_A","label":"이동통신사 A","type":"MNO","synthetic":true,"metrics":{"licensedStations":{"2023":245033,"2024":240369,"2025":283722,"2026-01":287199,"2026-02":326745,"2026-03":245227,"2026-04":309896,"2026-05":257861},"newLicenses":{"2023":17128,"2024":20415,"2025":17387,"2026-01":1677,"2026-02":1367,"2026-03":1348,"2026-04":1879,"2026-05":1473},"techViolations":{"2023":44,"2024":36,"2025":41,"2026-01":3,"2026-02":3,"2026-03":3,"2026-04":3,"2026-05":2},"licenseViolations":{"2023":26,"2024":27,"2025":27,"2026-01":2,"2026-02":2,"2026-03":2,"2026-04":2,"2026-05":2},"spectrumFeeKRW1k":{"2023":9538812,"2024":10736691,"2025":9789671,"2026-01":820077,"2026-02":936936,"2026-03":842772,"2026-04":936294,"2026-05":923128},"inspections":{"2023":3046,"2024":3211,"2025":3778,"2026-01":321,"2026-02":330,"2026-03":317,"2026-04":317,"2026-05":281}}},{"id":"DEMO_MNO_B","label":"이동통신사 B","type":"MNO","synthetic":true,"metrics":{"licensedStations":{"2023":174903,"2024":188315,"2025":228879,"2026-01":251590,"2026-02":209482,"2026-03":261187,"2026-04":275055,"2026-05":215861},"newLicenses":{"2023":13558,"2024":16441,"2025":17530,"2026-01":1509,"2026-02":1504,"2026-03":1293,"2026-04":1115,"2026-05":1503},"techViolations":{"2023":35,"2024":36,"2025":33,"2026-01":3,"2026-02":2,"2026-03":2,"2026-04":2,"2026-05":2},"licenseViolations":{"2023":23,"2024":20,"2025":22,"2026-01":2,"2026-02":2,"2026-03":2,"2026-04":2,"2026-05":2},"spectrumFeeKRW1k":{"2023":8121713,"2024":9028655,"2025":8076754,"2026-01":647779,"2026-02":850098,"2026-03":631739,"2026-04":839573,"2026-05":694243},"inspections":{"2023":3094,"2024":2561,"2025":2943,"2026-01":270,"2026-02":222,"2026-03":241,"2026-04":218,"2026-05":277}}},{"id":"DEMO_MNO_C","label":"이동통신사 C","type":"MNO","synthetic":true,"metrics":{"licensedStations":{"2023":159263,"2024":147132,"2025":169421,"2026-01":194187,"2026-02":177010,"2026-03":176964,"2026-04":203045,"2026-05":185963},"newLicenses":{"2023":10374,"2024":10725,"2025":10908,"2026-01":1180,"2026-02":900,"2026-03":1010,"2026-04":1096,"2026-05":829},"techViolations":{"2023":25,"2024":22,"2025":20,"2026-01":2,"2026-02":1,"2026-03":1,"2026-04":2,"2026-05":2},"licenseViolations":{"2023":18,"2024":17,"2025":14,"2026-01":1,"2026-02":1,"2026-03":1,"2026-04":1,"2026-05":1},"spectrumFeeKRW1k":{"2023":6531706,"2024":6115926,"2025":6306677,"2026-01":479773,"2026-02":642887,"2026-03":576087,"2026-04":573442,"2026-05":632171},"inspections":{"2023":1886,"2024":2039,"2025":2152,"2026-01":155,"2026-02":177,"2026-03":193,"2026-04":174,"2026-05":174}}},{"id":"DEMO_MVNO","label":"알뜰폰 사업자군","type":"MVNO","synthetic":true,"metrics":{"licensedStations":{"2023":0,"2024":0,"2025":0,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"newLicenses":{"2023":3252,"2024":3562,"2025":3216,"2026-01":245,"2026-02":258,"2026-03":282,"2026-04":261,"2026-05":295},"techViolations":{"2023":0,"2024":0,"2025":0,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"licenseViolations":{"2023":5,"2024":5,"2025":5,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"spectrumFeeKRW1k":{"2023":0,"2024":0,"2025":0,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"inspections":{"2023":0,"2024":0,"2025":0,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0}}},{"id":"DEMO_P5G","label":"이음5G 사업자군","type":"PRIVATE5G","synthetic":true,"metrics":{"licensedStations":{"2023":20641,"2024":24402,"2025":24173,"2026-01":21931,"2026-02":30286,"2026-03":27340,"2026-04":28415,"2026-05":21294},"newLicenses":{"2023":1725,"2024":1695,"2025":1711,"2026-01":149,"2026-02":158,"2026-03":150,"2026-04":128,"2026-05":151},"techViolations":{"2023":4,"2024":3,"2025":3,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"licenseViolations":{"2023":3,"2024":2,"2025":2,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"spectrumFeeKRW1k":{"2023":857848,"2024":871981,"2025":929188,"2026-01":90437,"2026-02":84364,"2026-03":78543,"2026-04":80121,"2026-05":89749},"inspections":{"2023":335,"2024":333,"2025":348,"2026-01":31,"2026-02":27,"2026-03":28,"2026-04":24,"2026-05":24}}},{"id":"DEMO_PSN","label":"공공안전·전용망 기관군","type":"PS_NET","synthetic":true,"metrics":{"licensedStations":{"2023":32698,"2024":35269,"2025":34631,"2026-01":43568,"2026-02":41943,"2026-03":39123,"2026-04":38809,"2026-05":36053},"newLicenses":{"2023":2813,"2024":2586,"2025":2779,"2026-01":208,"2026-02":218,"2026-03":195,"2026-04":248,"2026-05":197},"techViolations":{"2023":5,"2024":6,"2025":5,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"licenseViolations":{"2023":4,"2024":4,"2025":3,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"spectrumFeeKRW1k":{"2023":0,"2024":0,"2025":0,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"inspections":{"2023":447,"2024":495,"2025":488,"2026-01":44,"2026-02":44,"2026-03":42,"2026-04":40,"2026-05":41}}},{"id":"DEMO_BCT","label":"지상파방송사업자군","type":"BC_TERR","synthetic":true,"metrics":{"licensedStations":{"2023":57162,"2024":56403,"2025":52475,"2026-01":59108,"2026-02":67312,"2026-03":58186,"2026-04":53937,"2026-05":61935},"newLicenses":{"2023":4034,"2024":3838,"2025":3792,"2026-01":313,"2026-02":351,"2026-03":422,"2026-04":311,"2026-05":413},"techViolations":{"2023":10,"2024":9,"2025":9,"2026-01":1,"2026-02":1,"2026-03":1,"2026-04":1,"2026-05":1},"licenseViolations":{"2023":6,"2024":5,"2025":6,"2026-01":0,"2026-02":0,"2026-03":1,"2026-04":0,"2026-05":1},"spectrumFeeKRW1k":{"2023":2002886,"2024":2055914,"2025":2057910,"2026-01":177999,"2026-02":191993,"2026-03":204645,"2026-04":184837,"2026-05":185123},"inspections":{"2023":785,"2024":818,"2025":684,"2026-01":55,"2026-02":61,"2026-03":54,"2026-04":71,"2026-05":73}}},{"id":"DEMO_SAT","label":"위성통신사업자군","type":"SAT_FSS","synthetic":true,"metrics":{"licensedStations":{"2023":18592,"2024":19101,"2025":19870,"2026-01":20368,"2026-02":19566,"2026-03":16549,"2026-04":18619,"2026-05":22623},"newLicenses":{"2023":1392,"2024":1354,"2025":1243,"2026-01":116,"2026-02":99,"2026-03":132,"2026-04":118,"2026-05":117},"techViolations":{"2023":3,"2024":3,"2025":3,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"licenseViolations":{"2023":2,"2024":2,"2025":2,"2026-01":0,"2026-02":0,"2026-03":0,"2026-04":0,"2026-05":0},"spectrumFeeKRW1k":{"2023":622351,"2024":745773,"2025":819764,"2026-01":70033,"2026-02":57065,"2026-03":67749,"2026-04":56609,"2026-05":63056},"inspections":{"2023":256,"2024":237,"2025":246,"2026-01":22,"2026-02":21,"2026-03":21,"2026-04":18,"2026-05":24}}},{"id":"DEMO_GEN","label":"간이·생활·아마추어 무선국","type":"GENERAL","synthetic":true,"metrics":{"licensedStations":{"2023":75054,"2024":84331,"2025":84350,"2026-01":117283,"2026-02":97157,"2026-03":93824,"2026-04":98600,"2026-05":91531},"newLicenses":{"2023":6706,"2024":6835,"2025":6254,"2026-01":610,"2026-02":649,"2026-03":471,"2026-04":471,"2026-05":498},"techViolations":{"2023":14,"2024":12,"2025":12,"2026-01":1,"2026-02":1,"2026-03":1,"2026-04":1,"2026-05":1},"licenseViolations":{"2023":10,"2024":9,"2025":9,"2026-01":1,"2026-02":1,"2026-03":1,"2026-04":1,"2026-05":1},"spectrumFeeKRW1k":{"2023":3724514,"2024":3265685,"2025":3508870,"2026-01":361519,"2026-02":376898,"2026-03":371352,"2026-04":271720,"2026-05":366048},"inspections":{"2023":1182,"2024":1160,"2025":1148,"2026-01":118,"2026-02":119,"2026-03":119,"2026-04":101,"2026-05":105}}}]}}</script>
+<script>
+(function(){
+"use strict";
+const DATA = JSON.parse(document.getElementById("dashboard-data").textContent);
+const NAT = DATA.national, CARRIERS = DATA.carriers, TS = DATA.techStandards;
+const PROFILES = { official: DATA.metricsOfficial, demo: DATA.metricsDemo };
+
+const METRIC_LABELS = {
+  licensedStations:"허가·신고 무선국 국수",
+  newLicenses:"신규 허가 건수",
+  techViolations:"기술기준 위반 건수",
+  licenseViolations:"허가·신고 위반 건수",
+  spectrumFeeKRW1k:"전파사용료",
+  inspections:"검사 무선국 건수"
+};
+const SERIES_VARS = ["--series-1","--series-2","--series-3","--series-4","--series-5","--series-6"];
+// 지표별 '좋은 방향'. 위반·적발 건수는 줄어드는 쪽이 개선이다.
+const BETTER = {
+  licensedStations:"up", newLicenses:"up", inspections:"up", spectrumFeeKRW1k:"up",
+  techViolations:"down", licenseViolations:"down"
+};
+
+const state = {
+  tab: "overview",
+  profile: "official",
+  metric: "techViolations",
+  period: "2025",
+  trendMetric: "techViolations",
+  selected: []
+};
+
+/* ---------- helpers ---------- */
+const $ = (s,r)=> (r||document).querySelector(s);
+const el = (tag, attrs, kids) => {
+  const n = document.createElementNS(tag==="svg"||SVG_TAGS.has(tag) ? "http://www.w3.org/2000/svg" : "http://www.w3.org/1999/xhtml", tag);
+  for (const k in (attrs||{})) {
+    if (k === "text") n.textContent = attrs[k];
+    else if (k === "html") n.innerHTML = attrs[k];
+    else if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+  }
+  (kids||[]).forEach(c => c && n.appendChild(c));
+  return n;
+};
+const SVG_TAGS = new Set(["g","rect","path","line","circle","text","svg","clipPath","polyline"]);
+const cssVar = v => getComputedStyle(document.querySelector(".viz-root")).getPropertyValue(v).trim();
+
+function fmt(v, metric){
+  if (v == null) return "—";
+  if (metric === "spectrumFeeKRW1k") {
+    if (Math.abs(v) >= 100000) return (v/100000).toFixed(1) + "억원";
+    return v.toLocaleString("ko-KR") + "천원";
+  }
+  return v.toLocaleString("ko-KR");
+}
+function unitOf(metric){
+  return metric === "spectrumFeeKRW1k" ? "" : (metric === "licensedStations" ? "국" : "건");
+}
+function activeProfile(){ return PROFILES[state.profile]; }
+function periodsOf(p){ return p.periods; }
+function periodLabel(k){ return k.includes("-") ? k.slice(0,4)+"년 "+Number(k.slice(5))+"월" : k+"년"; }
+
+/* 값이 없을 때의 안내 — 왜 비었는지와 다음 행동을 함께 보여준다. */
+function emptyState(mount){
+  const box = el("div",{style:"padding:26px 4px 20px"});
+  box.appendChild(el("div",{class:"pending",text:"표시할 데이터가 없습니다."}));
+  box.appendChild(el("div",{style:"color:var(--text-muted);font-size:12.5px;margin:6px 0 12px",
+    text:"원자료가 아직 적재되지 않았습니다. 적재 절차는 '데이터 노트' 탭에 있습니다."}));
+  if (state.profile !== "demo"){
+    const b = el("button",{class:"btn",type:"button",text:"데모 데이터로 화면 미리 보기"});
+    b.addEventListener("click",()=>{ state.profile="demo"; state.selected=[]; render(); });
+    box.appendChild(b);
+  }
+  mount.appendChild(box);
+}
+
+/* 축 눈금을 1·2·2.5·5·10 계열의 '보기 좋은 수'로 맞춘다. */
+function niceScale(lo, hi, targetTicks){
+  if (hi === lo) hi = lo + 1;
+  const rawStep = (hi - lo) / Math.max(1, targetTicks);
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const step = [1,2,2.5,5,10].map(m=>m*mag).find(s=> s >= rawStep) || 10*mag;
+  return [Math.floor(lo/step)*step, Math.ceil(hi/step)*step, step];
+}
+
+/* ---------- chart: multi-line with crosshair ---------- */
+function lineChart(mount, opt){
+  const W = Math.max(560, mount.clientWidth || 640), H = opt.height || 300;
+  const M = {t:14, r:18, b:34, l:opt.leftPad || 62};
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const ps = opt.periods, series = opt.series.filter(s => s.values.some(v => v != null));
+  const flat = series.flatMap(s => s.values).filter(v => v != null);
+  if (!ps.length || !series.length || !flat.length) { emptyState(mount); return; }
+  const rawMax = Math.max(...flat), rawMin = Math.min(0, ...flat);
+  const [min, max, step] = niceScale(rawMin, rawMax * 1.08 || 1, 4);
+  const x = i => M.l + (ps.length === 1 ? iw/2 : i * iw/(ps.length-1));
+  const y = v => M.t + ih - ((v - min)/(max - min)) * ih;
+
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`, width:W, height:H, role:"img",
+    "aria-label":opt.ariaLabel || opt.title || "추이 차트"});
+  for (let v = min; v <= max + step/2; v += step){
+    const yy = y(v);
+    svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:yy,y2:yy,stroke:cssVar("--grid"),"stroke-width":1}));
+    svg.appendChild(el("text",{x:M.l-9,y:yy+4,"text-anchor":"end","font-size":11,
+      fill:cssVar("--text-muted"),style:"font-variant-numeric:tabular-nums",
+      text: opt.tickFmt ? opt.tickFmt(v) : Math.round(v).toLocaleString("ko-KR")}));
+  }
+  svg.appendChild(el("line",{x1:M.l,x2:M.l+iw,y1:M.t+ih,y2:M.t+ih,stroke:cssVar("--axis"),"stroke-width":1}));
+  ps.forEach((p,i)=> svg.appendChild(el("text",{x:x(i),y:H-11,"text-anchor":"middle","font-size":11,
+    fill:cssVar("--text-muted"),text:opt.xFmt ? opt.xFmt(p) : p})));
+
+  const cross = el("line",{x1:0,x2:0,y1:M.t,y2:M.t+ih,stroke:cssVar("--axis"),"stroke-width":1,opacity:0});
+  svg.appendChild(cross);
+
+  series.forEach(s=>{
+    const pts = s.values.map((v,i)=> v==null ? null : [x(i), y(v)]).filter(Boolean);
+    if (pts.length > 1)
+      svg.appendChild(el("path",{d:"M"+pts.map(p=>p.join(" ")).join(" L "),fill:"none",
+        stroke:s.color,"stroke-width":2,"stroke-linecap":"round","stroke-linejoin":"round"}));
+    pts.forEach(p=>{
+      svg.appendChild(el("circle",{cx:p[0],cy:p[1],r:4.5,fill:s.color,
+        stroke:cssVar("--surface-1"),"stroke-width":2}));
+    });
+  });
+  mount.appendChild(svg);
+
+  const tip = el("div",{class:"tip"}); mount.appendChild(tip);
+  svg.addEventListener("mousemove", ev=>{
+    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * (W / r.width);
+    let idx = 0, best = Infinity;
+    ps.forEach((_,i)=>{ const d = Math.abs(x(i)-sx); if (d<best){best=d;idx=i;} });
+    cross.setAttribute("x1",x(idx)); cross.setAttribute("x2",x(idx)); cross.setAttribute("opacity",1);
+    tip.innerHTML = "";
+    tip.appendChild(el("b",{text: opt.xFmt ? opt.xFmt(ps[idx]) : ps[idx]}));
+    series.forEach(s=>{
+      tip.appendChild(el("div",{class:"row"},[
+        el("span",{class:"k"},[el("span",{class:"swatch",style:"background:"+s.color}), el("span",{text:s.name})]),
+        el("span",{class:"v",text: opt.valFmt ? opt.valFmt(s.values[idx]) : fmt(s.values[idx])})
+      ]));
+    });
+    tip.style.opacity = 1;
+    const px = x(idx) * (r.width / W);
+    tip.style.left = Math.min(Math.max(px - tip.offsetWidth/2, 0), r.width - tip.offsetWidth) + "px";
+    tip.style.top = "6px";
+  });
+  svg.addEventListener("mouseleave", ()=>{ tip.style.opacity = 0; cross.setAttribute("opacity",0); });
+
+  if (series.length >= 2) {
+    const lg = el("ul",{class:"legend"});
+    series.forEach(s=> lg.appendChild(el("li",{},[
+      el("span",{class:"swatch",style:"background:"+s.color}), el("span",{text:s.name})])));
+    mount.parentNode.insertBefore(lg, mount.nextSibling);
+  }
+}
+
+/* ---------- chart: horizontal bars, single series ---------- */
+function barChart(mount, rows, opt){
+  const shown = rows.filter(r => r.value != null);
+  if (!shown.length) { emptyState(mount); return; }
+  const W = Math.max(560, mount.clientWidth || 640);
+  // 막대 끝 직접 라벨이 잘리지 않도록, 가장 긴 라벨 폭만큼 오른쪽 여백을 확보한다.
+  const labelPad = Math.max(...shown.map(r => opt.valFmt(r.value).length)) * 7.2 + 18;
+  const rowH = 34, M = {t:6, r:Math.max(16, labelPad), b:6, l:opt.leftPad || 170};
+  const H = M.t + M.b + shown.length * rowH;
+  const iw = W - M.l - M.r;
+  const max = Math.max(...shown.map(r=>r.value), 1);
+  const color = cssVar("--series-1");
+  const svg = el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H,role:"img","aria-label":opt.ariaLabel});
+  const tip = el("div",{class:"tip"});
+
+  shown.forEach((r,i)=>{
+    const cy = M.t + i*rowH, bh = 16, by = cy + (rowH-bh)/2;
+    const bw = Math.max(r.value === 0 ? 0 : 3, (r.value/max) * iw);
+    svg.appendChild(el("text",{x:M.l-12,y:by+12,"text-anchor":"end","font-size":12.5,
+      fill:cssVar("--text-secondary"),text:r.label}));
+    if (bw > 0)
+      svg.appendChild(el("rect",{x:M.l,y:by,width:bw,height:bh,rx:4,fill:color}));
+    // 직접 라벨 — 밝은 대비 구제 규칙(relief rule) 충족
+    svg.appendChild(el("text",{x:M.l+bw+8,y:by+12,"font-size":12,fill:cssVar("--text-primary"),
+      style:"font-variant-numeric:tabular-nums",text:opt.valFmt(r.value)}));
+    const hit = el("rect",{x:0,y:cy,width:W,height:rowH,fill:"transparent"});
+    hit.addEventListener("mouseenter",()=>{
+      tip.innerHTML="";
+      tip.appendChild(el("b",{text:r.label}));
+      tip.appendChild(el("div",{class:"row"},[
+        el("span",{class:"k"},[el("span",{class:"swatch",style:"background:"+color}),
+          el("span",{text:opt.metricLabel})]),
+        el("span",{class:"v",text:opt.valFmt(r.value)})]));
+      if (r.note) tip.appendChild(el("div",{class:"row"},[el("span",{class:"k",text:r.note})]));
+      tip.style.opacity=1; tip.style.top=(cy*0.9)+"px"; tip.style.left="12px";
+    });
+    hit.addEventListener("mouseleave",()=>{ tip.style.opacity=0; });
+    svg.appendChild(hit);
+  });
+  mount.appendChild(svg); mount.appendChild(tip);
+}
+
+/* ---------- table view ---------- */
+function tableView(cols, rows, caption){
+  const d = el("details",{class:"tableview"});
+  d.appendChild(el("summary",{"aria-label":"표로 보기"}));
+  const w = el("div",{class:"tblwrap"});
+  const t = el("table");
+  if (caption) t.appendChild(el("caption",{class:"srconly",text:caption}));
+  t.appendChild(el("thead",{},[el("tr",{}, cols.map(c=>
+    el("th",{class:c.num?"num":"",scope:"col",text:c.label})))]));
+  t.appendChild(el("tbody",{}, rows.map(r=> el("tr",{}, r.map((cell,i)=>
+    el("td",{class:cols[i].num?"num":"",text:String(cell)}))))));
+  w.appendChild(t); d.appendChild(w);
+  return d;
+}
+
+function chartCard(title, note, buildFn, tableEl){
+  const card = el("div",{class:"chartcard"});
+  card.appendChild(el("h2",{text:title}));
+  if (note) card.appendChild(el("p",{class:"note",text:note}));
+  const plot = el("div",{class:"plot"});
+  card.appendChild(plot);
+  requestAnimationFrame(()=> buildFn(plot));
+  if (tableEl) card.appendChild(tableEl);
+  return card;
+}
+
+/* ---------- banner ---------- */
+function renderBanner(){
+  const ingested = NAT.ingestion && NAT.ingestion.status === "INGESTED";
+  const demo = state.profile === "demo";
+  const b = $("#banner");
+  b.querySelector(".mark").style.background = demo ? cssVar("--serious") : (ingested ? cssVar("--good") : cssVar("--warning"));
+  b.querySelector(".mark").textContent = demo ? "D" : (ingested ? "✓" : "!");
+  if (demo){
+    $("#bannerTitle").textContent = "데모 모드 — 화면의 사업자별 수치는 전부 합성 가상값입니다";
+    $("#bannerBody").textContent = "차트·집계 로직을 원자료 없이 점검하기 위한 모드입니다. 사업자 라벨은 실명 대신 익명 라벨을 사용하며, 이 수치는 인용·보고에 사용할 수 없습니다.";
+  } else if (!ingested){
+    $("#bannerTitle").textContent = "국가 총계 원자료 미적재 — 사업자별 실적 수치는 미수집 상태입니다";
+    $("#bannerBody").textContent = NAT.ingestion.reason + " 적재 방법은 '데이터 노트' 탭을 참고하십시오.";
+  } else {
+    $("#bannerTitle").textContent = "국가 총계 적재 완료 — 사업자별 실적 수치는 별도 원자료 투입이 필요합니다";
+    $("#bannerBody").textContent = "중앙전파관리소 전파관리통계는 전국 총계만 공표하며 사업자별로 분해되어 있지 않습니다. 사업자 단위 수치는 정보공개청구·국정감사 요구자료 등으로 채워야 합니다.";
+  }
+}
+
+/* ---------- panel: 개요 (국가 총계) ---------- */
+// 국가 총계 계열 id <- 사업자 지표 키. 데모 모드에서 총계를 재구성할 때 쓴다.
+const NAT_FROM_METRIC = {
+  LIC_STATIONS_TOTAL:"licensedStations", LIC_NEW:"newLicenses",
+  MON_TECH_VIOL:"techViolations", MON_LICENSE_VIOL:"licenseViolations",
+  FEE_AMOUNT:"spectrumFeeKRW1k", INSP_STATIONS:"inspections"
+};
+function natSeries(id){
+  const base = NAT.series.find(s=>s.id===id) || {id, label:id, values:{}};
+  if (state.profile !== "demo") return base;
+  const metric = NAT_FROM_METRIC[id];
+  if (!metric) return {...base, values:{}};   // 데모에 대응 지표가 없는 계열은 비운다
+  const values = {};
+  PROFILES.demo.periods.forEach(pk=>{
+    let sum = null;
+    PROFILES.demo.carriers.forEach(c=>{
+      const v = c.metrics[metric] ? c.metrics[metric][pk] : null;
+      if (v != null) sum = (sum ?? 0) + v;
+    });
+    if (sum != null) values[pk] = sum;
+  });
+  return {...base, values};
+}
+function natYears(){
+  if (state.profile === "demo") return PROFILES.demo.periods.filter(p=>!p.includes("-"));
+  return NAT.periods.filter(p=>p.granularity==="YEAR").map(p=>p.key);
+}
+
+function renderOverview(){
+  const host = $("#panel-overview"); host.innerHTML="";
+  const ctrl = el("div",{class:"controls"});
+  ctrl.appendChild(profileToggle());
+  host.appendChild(ctrl);
+  const years = natYears(), last = years[years.length-1], prev = years[years.length-2];
+
+  const TILES = [
+    {id:"LIC_STATIONS_TOTAL", unit:"국", better:"up"},
+    {id:"MON_TECH_VIOL",      unit:"건", better:"down"},
+    {id:"MON_LICENSE_VIOL",   unit:"건", better:"down"},
+    {id:"FEE_AMOUNT",         unit:"",   better:"up", fee:true}
+  ];
+  const tiles = el("div",{class:"grid tiles"});
+  TILES.forEach(t=>{
+    const s = natSeries(t.id), cur = s.values[last], pre = s.values[prev];
+    const card = el("div",{class:"card"});
+    card.appendChild(el("h3",{text:s.label || t.id}));
+    if (cur == null){
+      card.appendChild(el("div",{class:"pending",text:"미수집"}));
+      card.appendChild(el("div",{class:"meta",text:"원자료 적재 후 표시"}));
+    } else {
+      const v = el("div",{class:"val"});
+      v.appendChild(document.createTextNode(t.fee ? fmt(cur,"spectrumFeeKRW1k") : cur.toLocaleString("ko-KR")));
+      if (t.unit) v.appendChild(el("span",{class:"unit",text:" "+t.unit}));
+      card.appendChild(v);
+      const meta = el("div",{class:"meta"});
+      if (pre != null && pre !== 0){
+        const pct = ((cur-pre)/Math.abs(pre))*100;
+        const rising = pct >= 0;
+        const good = (t.better === "up") === rising;
+        meta.appendChild(el("span",{class: good ? "up":"down",
+          text:(rising?"▲ ":"▼ ")+Math.abs(pct).toFixed(1)+"%"}));
+        meta.appendChild(document.createTextNode("  전년 대비 ("+prev+"년)"));
+      } else meta.textContent = last+"년 기준";
+      card.appendChild(meta);
+    }
+    tiles.appendChild(card);
+  });
+  host.appendChild(tiles);
+
+  const stack = el("div",{class:"stack",style:"margin-top:18px"});
+
+  // 전파감시 적발 추이 — 두 계열 모두 단위가 '건'이라 단일 축으로 그린다(이중축 금지)
+  const violIds = ["MON_TECH_VIOL","MON_LICENSE_VIOL","MON_ILLEGAL"];
+  const violSeries = violIds.map((id,i)=>({
+    name: natSeries(id).label || id, color: cssVar(SERIES_VARS[i]),
+    values: years.map(y => natSeries(id).values[y] ?? null)
+  }));
+  stack.appendChild(chartCard(
+    "전파감시 적발 실적 추이 (전국 총계)",
+    "세 계열 모두 단위가 '건'이므로 하나의 축에 함께 그립니다. 근거: 「전파법」 제45조(기술기준), 제19조·제19조의2(허가·신고).",
+    m => lineChart(m, {periods:years, series:violSeries, xFmt:y=>y+"년", valFmt:v=>fmt(v)+" 건", height:290}),
+    tableView(
+      [{label:"연도"},...violIds.map(id=>({label:natSeries(id).label||id, num:true}))],
+      years.map(y=>[y+"년", ...violIds.map(id=> natSeries(id).values[y]!=null ? natSeries(id).values[y].toLocaleString("ko-KR") : "—")]),
+      "전파감시 적발 실적 연도별 추이")
+  ));
+
+  // 전파사용료는 단위(천원)가 달라 별도 차트 — 이중축 대신 차트 분리
+  const feeYears = years.map(y => natSeries("FEE_AMOUNT").values[y] ?? null);
+  stack.appendChild(chartCard(
+    "전파사용료 부과·징수액 추이 (전국 총계)",
+    "단위가 다르므로 적발 건수와 축을 공유하지 않고 별도 차트로 분리했습니다. 근거: 「전파법」 제67조·제68조.",
+    m => lineChart(m,{periods:years,
+      series:[{name:"전파사용료", color:cssVar("--series-2"), values:feeYears}],
+      xFmt:y=>y+"년", valFmt:v=>fmt(v,"spectrumFeeKRW1k"),
+      tickFmt:v=> (v/100000).toFixed(0)+"억", leftPad:66, height:260}),
+    tableView([{label:"연도"},{label:"전파사용료",num:true}],
+      years.map((y,i)=>[y+"년", feeYears[i]!=null ? fmt(feeYears[i],"spectrumFeeKRW1k") : "—"]),
+      "전파사용료 연도별 추이")
+  ));
+  host.appendChild(stack);
+}
+
+/* ---------- panel: 사업자 비교 ---------- */
+function profileToggle(){
+  const f = el("div",{class:"field"});
+  f.appendChild(el("label",{text:"데이터 프로파일"}));
+  const seg = el("div",{class:"seg"});
+  [["official","공식(미수집)"],["demo","데모(합성)"]].forEach(([k,lab])=>{
+    const b = el("button",{class:"btn",type:"button","aria-pressed":String(state.profile===k),text:lab});
+    b.addEventListener("click",()=>{ state.profile=k; state.selected=[]; render(); });
+    seg.appendChild(b);
+  });
+  f.appendChild(seg); return f;
+}
+function selectField(labelText, options, value, onChange){
+  const f = el("div",{class:"field"});
+  f.appendChild(el("label",{text:labelText}));
+  const s = el("select");
+  options.forEach(([v,l])=>{
+    const o = el("option",{value:v,text:l});
+    if (v===value) o.setAttribute("selected","selected");
+    s.appendChild(o);
+  });
+  s.addEventListener("change",e=>onChange(e.target.value));
+  f.appendChild(s); return f;
+}
+
+function renderCarriers(){
+  const host = $("#panel-carriers"); host.innerHTML="";
+  const prof = activeProfile(), ps = periodsOf(prof);
+  if (!ps.includes(state.period)) state.period = ps.includes("2025") ? "2025" : ps[0];
+
+  const ctrl = el("div",{class:"controls"});
+  ctrl.appendChild(profileToggle());
+  ctrl.appendChild(selectField("지표", Object.entries(METRIC_LABELS), state.metric,
+    v=>{ state.metric=v; render(); }));
+  ctrl.appendChild(selectField("기간", ps.map(p=>[p,periodLabel(p)]), state.period,
+    v=>{ state.period=v; render(); }));
+  host.appendChild(ctrl);
+
+  const typeById = {}; TS.carrierTypes.forEach(t=> typeById[t.code]=t);
+  const rows = prof.carriers.map(c=>({
+    label: c.label,
+    value: c.metrics[state.metric] ? c.metrics[state.metric][state.period] : null,
+    type: c.type,
+    note: typeById[c.type] ? typeById[c.type].shortLabel : c.type
+  })).sort((a,b)=> (b.value ?? -1) - (a.value ?? -1));
+
+  const valFmt = v => fmt(v, state.metric) + (unitOf(state.metric) ? " "+unitOf(state.metric) : "");
+  const anyValue = rows.some(r=>r.value != null);
+
+  host.appendChild(chartCard(
+    METRIC_LABELS[state.metric] + " — 사업자별 비교 (" + periodLabel(state.period) + ")",
+    anyValue ? "단일 계열 막대이므로 색은 식별이 아니라 한 가지 값을 나타냅니다. 값은 막대 끝에 직접 표기했습니다."
+             : "공식 프로파일에는 사업자별 실적 수치가 아직 없습니다. 데모 프로파일로 전환하면 합성값으로 화면 동작을 확인할 수 있습니다.",
+    m => barChart(m, rows, {valFmt, metricLabel:METRIC_LABELS[state.metric],
+      ariaLabel:METRIC_LABELS[state.metric]+" 사업자별 비교"}),
+    tableView(
+      [{label:"사업자"},{label:"사업자 유형"},{label:METRIC_LABELS[state.metric],num:true}],
+      rows.map(r=>[r.label, r.note, r.value!=null ? valFmt(r.value) : "미수집"]),
+      "사업자별 "+METRIC_LABELS[state.metric])
+  ));
+
+  // 법적 지위 비교표 — 실적 수치와 달리 조문으로 확정되는 사실 계층
+  const legal = el("div",{class:"chartcard",style:"margin-top:18px"});
+  legal.appendChild(el("h2",{text:"사업자 유형별 법적 지위 비교 (조문 확정 사실)"}));
+  legal.appendChild(el("p",{class:"note",
+    text:"아래 항목은 실적 통계가 아니라 「전파법」 조문으로 확정되는 구조적 사실이므로, 원자료 적재 여부와 무관하게 항상 표시됩니다."}));
+  const w = el("div",{class:"tblwrap"});
+  const t = el("table");
+  t.appendChild(el("thead",{},[el("tr",{},[
+    "사업자 유형","무선국 개설 경로","가입자 단말 취급","전파사용료","산정 기준"
+  ].map(h=> el("th",{scope:"col",text:h}))) ]));
+  t.appendChild(el("tbody",{}, TS.carrierTypes.map(ct=> el("tr",{},[
+    el("td",{},[el("span",{style:"font-weight:600",text:ct.label}),
+                el("div",{style:"color:var(--text-muted);font-size:11.5px",text:ct.examples.join(", ")})]),
+    el("td",{},[el("span",{text:ct.openingRoute.route}),
+                el("div",{style:"color:var(--text-muted);font-size:11.5px",text:ct.openingRoute.basis})]),
+    el("td",{},[el("span",{text:ct.subscriberStationRoute.route}),
+                el("div",{style:"color:var(--text-muted);font-size:11.5px",text:ct.subscriberStationRoute.basis})]),
+    el("td",{},[el("span",{text:ct.spectrumFee.status}),
+                el("div",{style:"color:var(--text-muted);font-size:11.5px",text:ct.spectrumFee.basis})]),
+    el("td",{},[el("span",{text:ct.spectrumFee.assessment}),
+                el("div",{style:"color:var(--text-muted);font-size:11.5px",text:ct.spectrumFee.assessmentBasis})])
+  ]))));
+  w.appendChild(t); legal.appendChild(w); host.appendChild(legal);
+}
+
+/* ---------- panel: 추이 ---------- */
+function renderTrend(){
+  const host = $("#panel-trend"); host.innerHTML="";
+  const prof = activeProfile(), ps = periodsOf(prof);
+  const yearKeys = ps.filter(p=>!p.includes("-"));
+  const all = prof.carriers;
+  if (!state.selected.length) state.selected = all.slice(0,3).map(c=>c.id);
+
+  const ctrl = el("div",{class:"controls"});
+  ctrl.appendChild(profileToggle());
+  ctrl.appendChild(selectField("지표", Object.entries(METRIC_LABELS), state.trendMetric,
+    v=>{ state.trendMetric=v; render(); }));
+  host.appendChild(ctrl);
+
+  const pick = el("div",{class:"controls",style:"gap:6px"});
+  pick.appendChild(el("span",{style:"font-size:11.5px;color:var(--text-muted);align-self:center;margin-right:4px",
+    text:"비교 사업자 (최대 6)"}));
+  all.forEach(c=>{
+    const on = state.selected.includes(c.id);
+    const b = el("button",{class:"btn",type:"button","aria-pressed":String(on),text:c.label});
+    b.addEventListener("click",()=>{
+      if (on) state.selected = state.selected.filter(x=>x!==c.id);
+      else if (state.selected.length < 6) state.selected = state.selected.concat(c.id);
+      render();
+    });
+    pick.appendChild(b);
+  });
+  host.appendChild(pick);
+
+  const chosen = all.filter(c=> state.selected.includes(c.id));
+  const series = chosen.map((c,i)=>({
+    name:c.label, color:cssVar(SERIES_VARS[i % SERIES_VARS.length]),
+    values: yearKeys.map(y=> c.metrics[state.trendMetric] ? (c.metrics[state.trendMetric][y] ?? null) : null)
+  }));
+  const vf = v => fmt(v, state.trendMetric) + (unitOf(state.trendMetric) ? " "+unitOf(state.trendMetric) : "");
+
+  host.appendChild(chartCard(
+    METRIC_LABELS[state.trendMetric] + " — 사업자별 연도 추이",
+    "선택한 사업자만 그립니다. 색은 사업자(개체)에 고정되어 있으므로 순위가 바뀌어도 색이 재배정되지 않습니다.",
+    m => lineChart(m,{periods:yearKeys, series, xFmt:y=>y+"년", valFmt:vf,
+      tickFmt: state.trendMetric==="spectrumFeeKRW1k" ? (v=>(v/100000).toFixed(0)+"억") : null,
+      leftPad: state.trendMetric==="spectrumFeeKRW1k" ? 66 : 62, height:320}),
+    tableView(
+      [{label:"사업자"},...yearKeys.map(y=>({label:y+"년",num:true}))],
+      chosen.map(c=>[c.label, ...yearKeys.map(y=>{
+        const v = c.metrics[state.trendMetric] ? c.metrics[state.trendMetric][y] : null;
+        return v!=null ? vf(v) : "미수집"; })]),
+      METRIC_LABELS[state.trendMetric]+" 연도별 추이")
+  ));
+
+  // 증감률 표 — 연도 간 변화를 수치로 명시
+  if (yearKeys.length >= 2){
+    const card = el("div",{class:"chartcard",style:"margin-top:18px"});
+    card.appendChild(el("h2",{text:"연도별 증감률"}));
+    card.appendChild(el("p",{class:"note",text:"직전 연도 대비 변화율입니다. 분모가 0이거나 값이 없으면 '—'로 표시합니다."}));
+    const w = el("div",{class:"tblwrap"}), t = el("table");
+    t.appendChild(el("thead",{},[el("tr",{},[el("th",{scope:"col",text:"사업자"})]
+      .concat(yearKeys.slice(1).map(y=> el("th",{class:"num",scope:"col",text:y+"년"}))))]));
+    t.appendChild(el("tbody",{}, chosen.map(c=> el("tr",{},[el("td",{text:c.label})]
+      .concat(yearKeys.slice(1).map((y,i)=>{
+        const m = c.metrics[state.trendMetric] || {};
+        const cur = m[y], pre = m[yearKeys[i]];
+        if (cur==null || pre==null || pre===0) return el("td",{class:"num",text:"—"});
+        const pct = ((cur-pre)/Math.abs(pre))*100;
+        // 위반·적발 지표는 증가가 악화이므로 색의 방향을 뒤집는다.
+        const good = (pct >= 0) === (BETTER[state.trendMetric] !== "down");
+        return el("td",{class:"num",style:"color:"+(good?"var(--delta-up)":"var(--critical)"),
+          text:(pct>=0?"+":"")+pct.toFixed(1)+"%"});
+      }))))));
+    w.appendChild(t); card.appendChild(w); host.appendChild(card);
+  }
+}
+
+/* ---------- panel: 기술기준 매핑 ---------- */
+const CHIP_CLASS = v => v === "해당없음" ? "na" : (v.startsWith("조건부") ? "cond" : "req");
+
+function renderStandards(){
+  const host = $("#panel-standards"); host.innerHTML="";
+  const cats = ["전체"].concat([...new Set(TS.standards.map(s=>s.category))]);
+  if (!state.stdCat) state.stdCat = "전체";
+  if (!state.stdType) state.stdType = "전체";
+
+  const ctrl = el("div",{class:"controls"});
+  ctrl.appendChild(selectField("기준 분류", cats.map(c=>[c,c]), state.stdCat,
+    v=>{ state.stdCat=v; render(); }));
+  ctrl.appendChild(selectField("사업자 유형",
+    [["전체","전체 유형 비교"]].concat(TS.carrierTypes.map(t=>[t.code,t.label])), state.stdType,
+    v=>{ state.stdType=v; render(); }));
+  host.appendChild(ctrl);
+
+  const types = state.stdType==="전체" ? TS.carrierTypes : TS.carrierTypes.filter(t=>t.code===state.stdType);
+  const stds = TS.standards.filter(s=> state.stdCat==="전체" || s.category===state.stdCat);
+
+  const card = el("div",{class:"chartcard"});
+  card.appendChild(el("h2",{text:"기술기준 항목 × 사업자 유형 적용 매핑표"}));
+  card.appendChild(el("p",{class:"note",
+    text:"각 셀은 색과 함께 '필수/조건부/해당없음' 문자를 항상 표기하므로 색만으로 의미를 구분하지 않습니다. 근거 조문은 항목명 아래에 병기했습니다."}));
+
+  const lg = el("ul",{class:"legend"});
+  [["필수","req"],["조건부","cond"],["해당없음","na"]].forEach(([lab,cls])=>
+    lg.appendChild(el("li",{},[el("span",{class:"chip "+cls,text:lab}),
+      el("span",{style:"color:var(--text-muted)",text:TS.applicabilityLegend[lab]})])));
+  card.appendChild(lg);
+
+  const w = el("div",{class:"tblwrap"}), t = el("table",{class:"matrix"});
+  t.appendChild(el("thead",{},[el("tr",{},
+    [el("th",{scope:"col",text:"기술기준 항목"}), el("th",{scope:"col",text:"측정 지표"})]
+    .concat(types.map(ty=> el("th",{class:"rot",scope:"col",text:ty.shortLabel}))))]));
+  t.appendChild(el("tbody",{}, stds.map(s=> el("tr",{},
+    [ el("td",{class:"std"},[
+        el("span",{class:"nm",text:s.name}),
+        el("span",{class:"ref",text:s.legalRef + (s.annex && s.annex!=="-" ? " · "+s.annex : "")})]),
+      el("td",{style:"color:var(--text-secondary);font-size:12px",text:s.measure})
+    ].concat(types.map(ty=>{
+      const v = s.applicability[ty.code] || "해당없음";
+      // '필수(안테나공급전력)' 처럼 괄호가 붙은 값은 칩을 짧게 두고 단서는 아래 줄로 뺀다.
+      const m = v.match(/^([^(]+)\((.+)\)$/);
+      const base = m ? m[1].trim() : v, qualifier = m ? m[2].trim() : null;
+      return el("td",{class:"c"},[
+        el("span",{class:"chip "+CHIP_CLASS(v),text:base}),
+        qualifier ? el("div",{class:"qual",text:qualifier}) : null
+      ].filter(Boolean));
+    }))))));
+  w.appendChild(t); card.appendChild(w); host.appendChild(card);
+
+  // 항목 상세
+  const detail = el("div",{class:"chartcard",style:"margin-top:18px"});
+  detail.appendChild(el("h2",{text:"기술기준 항목 상세 분류"}));
+  detail.appendChild(el("p",{class:"note",text:"정의·위임 구조·위반 시 영향입니다. 조문은 법제처 국가법령정보 현행본 기준입니다."}));
+  const dw = el("div",{class:"tblwrap"}), dt = el("table");
+  dt.appendChild(el("thead",{},[el("tr",{},["ID","분류","항목","정의","위임 구조","위반 시 영향"]
+    .map(h=> el("th",{scope:"col",text:h})))]));
+  dt.appendChild(el("tbody",{}, stds.map(s=> el("tr",{},[
+    el("td",{style:"color:var(--text-muted)",text:s.id}),
+    el("td",{text:s.category}),
+    el("td",{},[el("span",{style:"font-weight:600",text:s.name}),
+                el("div",{style:"color:var(--text-muted);font-size:11.5px",text:s.legalRef})]),
+    el("td",{style:"color:var(--text-secondary)",text:s.definition}),
+    el("td",{style:"color:var(--text-secondary)",text:s.delegation}),
+    el("td",{style:"color:var(--text-secondary)",text:s.violationImpact})
+  ]))));
+  dw.appendChild(dt); detail.appendChild(dw); host.appendChild(detail);
+}
+
+/* ---------- panel: 데이터 노트 ---------- */
+function renderNotes(){
+  const host = $("#panel-notes");
+  if (host.dataset.done) return;
+  host.dataset.done = "1";
+  const d = NAT.dataset;
+  host.innerHTML = `
+  <div class="chartcard prose">
+    <h2>1. 원자료</h2>
+    <ul>
+      <li><b>${d.title}</b> — ${d.orgName} ${d.deptName}</li>
+      <li>공공데이터포털 목록번호 ${d.recordId} · 형식 ${d.format} · 갱신주기 ${d.updateCycle} · 최종수정 ${d.modifiedDate}</li>
+      <li>이용허락범위: ${d.license} · 최신 파일: ${d.latestFile}</li>
+      <li>포털: <a href="${d.portalUrl}" target="_blank" rel="noopener">${d.portalUrl}</a></li>
+      <li>기관 주석: ${d.note}</li>
+    </ul>
+
+    <h2>2. 이 대시보드가 사업자별 수치를 비워 두는 이유</h2>
+    <p>전파관리통계는 <b>전국 총계 ${d.rowCount}행 × 기간 ${d.columnCount - 1}열</b>의 가로형 표입니다.
+    '구분' 축은 무선국 종류·업무 유형으로 나뉘며, <b>사업자(법인) 축은 존재하지 않습니다</b>.
+    따라서 이 통계만으로는 특정 사업자의 허가 건수·기술기준 위반 건수·전파사용료 납부액을 분해할 수 없습니다.
+    실존 사업자 이름에 근거 없는 수치를 붙이지 않기 위해, 공식 프로파일에서는 해당 값을 '미수집'으로 두고
+    데모 프로파일에서는 익명 라벨과 합성값만 사용합니다.</p>
+
+    <h2>3. 사업자별 수치를 채우는 경로</h2>
+    <ul>
+      <li>과학기술정보통신부·중앙전파관리소 <b>정보공개청구</b> 회신(사업자별 무선국·검사·위반 내역)</li>
+      <li>국회 과학기술정보방송통신위원회 <b>국정감사 요구자료</b>(사업자별 전파사용료 납부액)</li>
+      <li>각 사업자 <b>사업보고서·감사보고서</b>상 전파사용료 계상액</li>
+      <li>「전파법」 제19조제3항에 따라 전기통신사업자가 통보한 <b>가입자 수</b></li>
+    </ul>
+    <p>수치를 채울 때는 <code>data/carrier_metrics.json</code>의 <code>basis</code> 필드에
+    OFFICIAL(원자료 그대로) · DERIVED(공표 총계로 산술 도출) · ESTIMATED(안분 추정) 중 하나를 반드시 표기하십시오.
+    안분 추정값에는 배분식과 근거 지표를 함께 남겨야 합니다.</p>
+
+    <h2>4. 적재 절차 — 두 가지 경로</h2>
+    <p>어느 경로로 넣어도 정규화 규칙(<code>scripts/rrb_common.py</code>)이 같아 결과가 동일합니다.</p>
+
+    <p><b>경로 A · 오픈API (인증키)</b> — 자동화에 적합합니다.</p>
+    <ul>
+      <li>포털에서 해당 데이터의 <b>활용신청</b>을 하고 인증키를 발급받습니다.
+        발급된 키는 <a href="https://www.data.go.kr/iim/api/selectAPIAcountView.do" target="_blank" rel="noopener">마이페이지 &gt; 개발계정 상세보기</a>에서 확인합니다.</li>
+      <li>같은 화면의 요청 주소에서 <code>/api/</code> 뒤 경로를 그대로 <code>--path</code>로 넘깁니다
+        (파일데이터 오픈API는 <code>15054180/v1/uddi:...</code> 형태이며, uddi 값은 포털 화면에만 표시됩니다).</li>
+      <li>인증키는 <b>환경변수로만</b> 다룹니다. 저장소에 커밋하지 마십시오.
+        <br><code>export DATA_GO_KR_SERVICE_KEY='발급받은 Decoding 인증키'</code>
+        <br><code>python3 scripts/fetch_rrb_api.py --path '15054180/v1/uddi:...'</code></li>
+      <li>포털은 같은 키를 <b>Encoding·Decoding 두 형태</b>로 보여줍니다. 기본값은 Decoding 키이며
+        한 번만 URL 인코딩합니다. Encoding 키를 그대로 넣으면 이중 인코딩되어
+        <code>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</code>가 납니다 — 그 경우 <code>--key-is-encoded</code>를 붙입니다.</li>
+      <li>요청 형태만 확인하려면 <code>--dry-run</code>을 씁니다(인증키는 가려서 출력됩니다).</li>
+    </ul>
+
+    <p><b>경로 B · CSV 직접 내려받기</b> — 오픈API가 제공되지 않을 때 씁니다.</p>
+    <ul>
+      <li>포털에서 CSV를 내려받습니다.</li>
+      <li><code>python3 scripts/ingest_rrb_csv.py &lt;내려받은.csv&gt;</code> 실행.</li>
+    </ul>
+
+    <p>두 경로 모두 마지막에 <code>python3 scripts/build_dashboard.py</code>를 실행하면
+    데이터가 인라인된 <code>index.html</code>이 다시 생성됩니다.
+    매핑되지 않은 '구분' 행은 버려지지 않고 <code>unmappedSeries</code>에 원문 그대로 보존되며 경고가 출력됩니다.</p>
+
+    <p><b>주의:</b> 이 데이터는 포털 목록상 <b>파일데이터</b>로 등록되어 있고, 중앙전파관리소의
+    오픈API 목록은 조회 시점 기준 0건입니다. 경로 A가 동작하려면 해당 데이터에
+    파일데이터 오픈API가 실제로 제공되고 있어야 하며, 제공되지 않으면
+    <code>NO_OPENAPI_SERVICE_ERROR</code>가 반환됩니다. 그때는 경로 B를 쓰십시오.</p>
+
+    <h2>5. 법령 근거</h2>
+    <ul>
+      <li>「전파법」(법률, 법령ID ${TS.legalBasis.parentAct.lawId}) — 공포 ${TS.legalBasis.parentAct.promulgated} · 시행 ${TS.legalBasis.parentAct.effective}</li>
+      <li>「무선설비규칙」(${TS.legalBasis.technicalRule.issuer}, 법령ID ${TS.legalBasis.technicalRule.lawId}) — 공포 ${TS.legalBasis.technicalRule.promulgated} · 시행 ${TS.legalBasis.technicalRule.effective}</li>
+      <li>조회 경로: ${TS.legalBasis.retrievedVia} · 조회일 ${TS.legalBasis.retrievedAt}</li>
+    </ul>
+    <p>구체적 수치 기준(허용편차 값, 불요발사 허용치 등)은 무선설비규칙 <b>별표 1~6</b> 및
+    과학기술정보통신부 고시에 규정되어 있습니다. 이 대시보드는 별표의 수치를 직접 옮겨 싣지 않고
+    <b>항목·근거 조문·측정 지표·적용 대상</b>까지만 정리합니다. 별표 수치는 개정이 잦아, 판단에 쓸 때에는
+    반드시 조회 시점의 현행 별표를 확인해야 합니다.</p>
+
+    <h2>6. 알려진 한계</h2>
+    <ul>
+      <li>전파감시 '기술기준위반' 집계는 적발 건수이며, 위반의 <b>중대성·조치 결과</b>를 구분하지 않습니다.</li>
+      <li>이동통신 가입자 단말은 「전파법」 제19조제2항에 따라 <b>허가의제</b>되어 검사·변경허가 대상에서 제외되므로,
+      무선국 국수 추이는 설비 규모가 아니라 <b>가입자 수 변동</b>을 크게 반영합니다.</li>
+      <li>「전파법」 제67조제1항제3호에 따라 허가의제 무선국은 전파사용료가 <b>전부 면제</b>되므로,
+      '무선국 수가 많으면 사용료도 많다'는 해석은 성립하지 않습니다.</li>
+      <li>기간통신사업자의 전파사용료는 제68조제1항 단서에 따라 <b>가입자 수 기준</b>으로 산정될 수 있어,
+      기지국 수 기반 안분 추정은 체계적 편향을 낳습니다.</li>
+      <li>포털 목록 메타데이터 기반 항목명은 원본 CSV의 실제 '구분' 문자열과 다를 수 있으며, 적재 시 원본 라벨이 정본입니다.</li>
+    </ul>
+  </div>`;
+}
+
+/* ---------- tabs & boot ---------- */
+const TABS = [
+  ["overview","개요 (전국 총계)"],
+  ["carriers","사업자 비교"],
+  ["trend","연도별 추이"],
+  ["standards","기술기준 매핑표"],
+  ["notes","데이터 노트"]
+];
+function renderTabs(){
+  const nav = $("#tabs"); nav.innerHTML="";
+  TABS.forEach(([k,lab])=>{
+    const b = el("button",{type:"button",role:"tab","aria-selected":String(state.tab===k),
+      "aria-controls":"panel-"+k,text:lab});
+    b.addEventListener("click",()=>{ state.tab=k; render(); });
+    nav.appendChild(b);
+  });
+  TABS.forEach(([k])=> $("#panel-"+k).classList.toggle("hidden", state.tab!==k));
+}
+function render(){
+  renderTabs(); renderBanner();
+  if (state.tab==="overview")  renderOverview();
+  if (state.tab==="carriers")  renderCarriers();
+  if (state.tab==="trend")     renderTrend();
+  if (state.tab==="standards") renderStandards();
+  if (state.tab==="notes")     renderNotes();
+}
+render();
+let rz; addEventListener("resize", ()=>{ clearTimeout(rz); rz=setTimeout(render,180); });
+})();
+</script>
+
+</body>
+</html>

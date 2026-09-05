@@ -27,9 +27,10 @@ JSON="divisions.json"
 # caught even if nobody remembered to register it).
 # integrations/ is convert.sh's OUTPUT tree (per-tool conversions written back
 # into the repo), not a source-agent category. strategy/ holds playbooks and
-# runbooks (no agent frontmatter), not agents. Neither is a division — they must
-# never be scanned as source-agent categories.
-NON_DIVISION_DIRS=(examples scripts integrations strategy)
+# runbooks (no agent frontmatter), not agents. projects/ holds self-contained
+# deliverables (data, build scripts, generated HTML), not agents. None is a
+# division — they must never be scanned as source-agent categories.
+NON_DIVISION_DIRS=(examples scripts integrations strategy projects)
 
 errors=0
 fail() { echo "ERROR $*"; errors=$((errors + 1)); }
@@ -50,9 +51,14 @@ canonical() {
 # `git ls-files` (not a filesystem glob) keeps this in lockstep with what CI's
 # clean checkout sees, so a local gitignored scratch dir (e.g. notes/) can't
 # produce a false failure.
+# core.quotePath=false is required: with the default, git wraps any path holding
+# a non-ASCII byte in double quotes, so a single file such as
+# `projects/x/docs/사양.md` yields the first field `"projects` — which then fails
+# to match its NON_DIVISION_DIRS entry and is reported as an unregistered
+# division. The directory name is the same either way; only the quoting differs.
 actual_dirs() {
   local base
-  git ls-files | awk -F/ 'NF>1{print $1}' | sort -u | while IFS= read -r base; do
+  git -c core.quotePath=false ls-files | awk -F/ 'NF>1{print $1}' | sort -u | while IFS= read -r base; do
     [[ "$base" == .* ]] && continue
     case " ${NON_DIVISION_DIRS[*]} " in *" $base "*) continue ;; esac
     echo "$base"

@@ -83,3 +83,9 @@ integrations/codex/agents/*
 integrations/osaurus/agency-*/
 integrations/hermes/agency-agents-router/
 graphify-out/
+
+# 공공데이터포털 인증키 — 환경변수로만 다룬다. 파일로 두더라도 절대 커밋하지 않는다.
+.env
+.env.*
+*serviceKey*
+*service_key*
