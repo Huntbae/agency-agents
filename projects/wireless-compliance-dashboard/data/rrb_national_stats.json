@@ -19,9 +19,10 @@
   },
   "ingestion": {
     "status": "PENDING_INGEST",
-    "reason": "본 실행 환경의 아웃바운드 프록시가 www.data.go.kr 도메인을 차단하여 원본 CSV를 직접 내려받지 못했습니다(EGRESS_BLOCKED).",
-    "howToFill": "포털에서 CSV를 내려받은 뒤 `python3 scripts/ingest_rrb_csv.py <내려받은.csv>` 실행 시 이 파일의 series[].values 가 실측값으로 채워짐",
-    "observedAt": "2026-09-05"
+    "reason": "본 실행 환경의 아웃바운드 프록시가 www.data.go.kr 과 api.odcloud.kr 을 모두 차단하여(CONNECT 403) CSV·오픈API 어느 경로로도 원자료를 받지 못했습니다.",
+    "howToFill": "경로 A(오픈API): 포털에서 활용신청 후 인증키를 발급받아 `export DATA_GO_KR_SERVICE_KEY=...` 설정 뒤 `python3 scripts/fetch_rrb_api.py --path '15054180/v1/uddi:...'` 실행. 경로 B(CSV): 포털에서 CSV를 내려받아 `python3 scripts/ingest_rrb_csv.py <내려받은.csv>` 실행. 두 경로 모두 scripts/rrb_common.py 의 같은 정규화 규칙을 쓴다.",
+    "observedAt": "2026-09-05",
+    "apiNote": "이 데이터는 포털 목록상 FILE 유형이며, 중앙전파관리소의 API 유형 목록은 2026-07 스냅샷 기준 0건이다. 파일데이터 오픈API가 별도 제공되지 않으면 경로 A는 NO_OPENAPI_SERVICE_ERROR 를 반환하므로 경로 B를 써야 한다."
   },
   "periods": [
     {

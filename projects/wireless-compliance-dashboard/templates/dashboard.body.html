@@ -776,13 +776,38 @@ function renderNotes(){
     OFFICIAL(원자료 그대로) · DERIVED(공표 총계로 산술 도출) · ESTIMATED(안분 추정) 중 하나를 반드시 표기하십시오.
     안분 추정값에는 배분식과 근거 지표를 함께 남겨야 합니다.</p>
 
-    <h2>4. 적재 절차</h2>
+    <h2>4. 적재 절차 — 두 가지 경로</h2>
+    <p>어느 경로로 넣어도 정규화 규칙(<code>scripts/rrb_common.py</code>)이 같아 결과가 동일합니다.</p>
+
+    <p><b>경로 A · 오픈API (인증키)</b> — 자동화에 적합합니다.</p>
+    <ul>
+      <li>포털에서 해당 데이터의 <b>활용신청</b>을 하고 인증키를 발급받습니다.
+        발급된 키는 <a href="https://www.data.go.kr/iim/api/selectAPIAcountView.do" target="_blank" rel="noopener">마이페이지 &gt; 개발계정 상세보기</a>에서 확인합니다.</li>
+      <li>같은 화면의 요청 주소에서 <code>/api/</code> 뒤 경로를 그대로 <code>--path</code>로 넘깁니다
+        (파일데이터 오픈API는 <code>15054180/v1/uddi:...</code> 형태이며, uddi 값은 포털 화면에만 표시됩니다).</li>
+      <li>인증키는 <b>환경변수로만</b> 다룹니다. 저장소에 커밋하지 마십시오.
+        <br><code>export DATA_GO_KR_SERVICE_KEY='발급받은 Decoding 인증키'</code>
+        <br><code>python3 scripts/fetch_rrb_api.py --path '15054180/v1/uddi:...'</code></li>
+      <li>포털은 같은 키를 <b>Encoding·Decoding 두 형태</b>로 보여줍니다. 기본값은 Decoding 키이며
+        한 번만 URL 인코딩합니다. Encoding 키를 그대로 넣으면 이중 인코딩되어
+        <code>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</code>가 납니다 — 그 경우 <code>--key-is-encoded</code>를 붙입니다.</li>
+      <li>요청 형태만 확인하려면 <code>--dry-run</code>을 씁니다(인증키는 가려서 출력됩니다).</li>
+    </ul>
+
+    <p><b>경로 B · CSV 직접 내려받기</b> — 오픈API가 제공되지 않을 때 씁니다.</p>
     <ul>
       <li>포털에서 CSV를 내려받습니다.</li>
-      <li><code>python3 scripts/ingest_rrb_csv.py &lt;내려받은.csv&gt;</code> 실행 — 국가 총계가 정규화되어 적재됩니다.</li>
-      <li><code>python3 scripts/build_dashboard.py</code> 실행 — 데이터가 인라인된 <code>index.html</code>이 다시 생성됩니다.</li>
-      <li>매핑되지 않은 '구분' 행은 버려지지 않고 <code>unmappedSeries</code>에 원문 그대로 보존되며 경고가 출력됩니다.</li>
+      <li><code>python3 scripts/ingest_rrb_csv.py &lt;내려받은.csv&gt;</code> 실행.</li>
     </ul>
+
+    <p>두 경로 모두 마지막에 <code>python3 scripts/build_dashboard.py</code>를 실행하면
+    데이터가 인라인된 <code>index.html</code>이 다시 생성됩니다.
+    매핑되지 않은 '구분' 행은 버려지지 않고 <code>unmappedSeries</code>에 원문 그대로 보존되며 경고가 출력됩니다.</p>
+
+    <p><b>주의:</b> 이 데이터는 포털 목록상 <b>파일데이터</b>로 등록되어 있고, 중앙전파관리소의
+    오픈API 목록은 조회 시점 기준 0건입니다. 경로 A가 동작하려면 해당 데이터에
+    파일데이터 오픈API가 실제로 제공되고 있어야 하며, 제공되지 않으면
+    <code>NO_OPENAPI_SERVICE_ERROR</code>가 반환됩니다. 그때는 경로 B를 쓰십시오.</p>
 
     <h2>5. 법령 근거</h2>
     <ul>

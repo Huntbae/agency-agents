@@ -43,15 +43,49 @@ python3 scripts/build_dashboard.py
 
 ## 실데이터 적재
 
+국가 총계를 넣는 경로는 두 가지다. 정규화 규칙은 `scripts/rrb_common.py` 하나를 공유하므로
+어느 쪽으로 넣어도 결과가 같다.
+
+### 경로 A — 오픈API (인증키)
+
+자동화에 적합하다. 먼저 포털에서 해당 데이터의 **활용신청**을 하고 인증키를 발급받는다.
+발급된 키는 [마이페이지 > 개발계정 상세보기](https://www.data.go.kr/iim/api/selectAPIAcountView.do)
+에서 확인한다. 같은 화면의 요청 주소에서 `/api/` 뒤 경로를 그대로 `--path` 로 넘긴다.
+
+```bash
+export DATA_GO_KR_SERVICE_KEY='발급받은 Decoding 인증키'
+python3 scripts/fetch_rrb_api.py --path '15054180/v1/uddi:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+```
+
+- **인증키는 환경변수로만 다룬다.** 저장소에 커밋하지 않는다. 스크립트는 오류 메시지와
+  `--dry-run` 출력에서 키를 항상 가린다.
+- 포털은 같은 키를 **Encoding·Decoding 두 형태**로 보여준다. 기본값은 Decoding 키이며
+  한 번만 URL 인코딩한다. Encoding 키를 그대로 넣으면 `%2B` 가 `%252B` 로 이중 인코딩되어
+  `SERVICE_KEY_IS_NOT_REGISTERED_ERROR` 가 난다 — 그 경우 `--key-is-encoded` 를 붙인다.
+- 인증 방식은 `--auth query`(기본, `serviceKey` 파라미터) 와 `--auth header`
+  (`Authorization: Infuser`) 를 모두 지원한다.
+- `--dry-run` 은 요청 URL만 출력하고 끝낸다.
+
+> **이 데이터에 오픈API가 있는지 먼저 확인할 것.** 15054180 은 포털 목록상 **파일데이터**
+> 유형이고, 중앙전파관리소의 API 유형 목록은 2026-07 카탈로그 스냅샷 기준 **0건**이다.
+> 파일데이터 오픈API가 별도로 제공되지 않으면 경로 A는 `NO_OPENAPI_SERVICE_ERROR` 를
+> 반환한다. 그때는 경로 B를 쓴다.
+
+### 경로 B — CSV 직접 내려받기
+
 1. 공공데이터포털에서 CSV를 내려받는다.
    <https://www.data.go.kr/data/15054180/fileData.do>
-2. 국가 총계를 정규화 적재한다.
+2. 정규화 적재한다.
    ```bash
    python3 scripts/ingest_rrb_csv.py 전파관리통계_20260531.csv
    ```
-   매핑되지 않은 '구분' 행은 버려지지 않고 `unmappedSeries` 에 원문 그대로 보존되며
-   경고가 출력된다. 경고가 뜨면 `scripts/ingest_rrb_csv.py` 의 `LABEL_RULES` 를 보완한다.
-3. 사업자별 실적 수치를 `data/carrier_metrics.json` 에 채우고, 값마다 `basis` 를 표기한다.
+
+### 공통
+
+매핑되지 않은 '구분' 행은 버려지지 않고 `unmappedSeries` 에 원문 그대로 보존되며
+경고가 출력된다. 경고가 뜨면 `scripts/rrb_common.py` 의 `LABEL_RULES` 를 보완한다.
+
+그다음 사업자별 실적 수치를 `data/carrier_metrics.json` 에 채우고, 값마다 `basis` 를 표기한다.
    - `OFFICIAL` — 공표·회신된 원자료 그대로
    - `DERIVED` — 공표 총계와 공표 분모로 산술 도출
    - `ESTIMATED` — 안분 추정(배분식과 근거 지표를 반드시 병기)
@@ -78,6 +112,8 @@ templates/dashboard.body.html   템플릿(스타일·차트·패널)
 data/                           입력 JSON — 사전은 data/schema.md
 docs/기술기준-매핑표.md          매핑표 문서(생성물)
 scripts/
+  rrb_common.py                 정규화 공용 로직 (CSV·API 경로가 공유)
+  fetch_rrb_api.py              오픈API(인증키) -> 정규화 JSON
   ingest_rrb_csv.py             전파관리통계 CSV -> 정규화 JSON
   build_dashboard.py            템플릿 + 데이터 -> index.html
   export_mapping_md.py          tech_standards.json -> 매핑표 문서
